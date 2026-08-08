@@ -1,0 +1,3073 @@
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Tabungan Anggota Ansor Andulang v2</title>
+  <link rel="icon" type="image/png" href="favicon-32.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0b6b3a">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Tabungan Ansor">
+
+  <style>
+    :root{
+      --bg:#071f14;
+      --panel:#0d2e1e;
+      --card:#123d28;
+      --text:#e5e7eb;
+      --muted:#94a3b8;
+      --border:rgba(148,163,184,.16);
+      --primary:#0b6b3a;
+      --primary2:#22c55e;
+      --danger:#ef4444;
+      --warn:#f59e0b;
+      --shadow:0 18px 55px rgba(0,0,0,.45);
+      --radius:18px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background:
+        radial-gradient(1100px 700px at 20% -10%, rgba(11,107,58,.35), transparent 60%),
+        radial-gradient(900px 600px at 95% 0%, rgba(34,197,94,.25), transparent 55%),
+        var(--bg);
+      color:var(--text);
+    }
+    .wrap{max-width:1200px;margin:0 auto;padding:18px}
+    .topbar{
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+      padding:14px 16px;border:1px solid var(--border);
+      background: linear-gradient(180deg, rgba(16,27,51,.85), rgba(15,23,42,.65));
+      border-radius: var(--radius); box-shadow: var(--shadow);
+    }
+    .brand{display:flex;flex-direction:column}
+    .brand b{font-size:16px;letter-spacing:.2px}
+    .brand span{font-size:12px;color:var(--muted)}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap}
+    .tab{
+      border:1px solid var(--border); background:rgba(148,163,184,.08);
+      color:var(--text); padding:10px 12px; border-radius: 14px;
+      cursor:pointer; font-weight:900; font-size:13px;
+    }
+    .tab.active{background:rgba(11,107,58,.18); border-color:rgba(11,107,58,.35)}
+    .grid{display:grid;gap:12px}
+    .cols2{grid-template-columns: 1.2fr .8fr}
+    .cols3{grid-template-columns: repeat(3, 1fr)}
+    @media(max-width:980px){ .cols2,.cols3{grid-template-columns:1fr} }
+    .card{
+      border:1px solid var(--border);
+      background: linear-gradient(180deg, rgba(16,27,51,.88), rgba(15,23,42,.72));
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding:14px;
+    }
+    h2{margin:0 0 10px 0;font-size:15px}
+    .muted{color:var(--muted)}
+    .pill{
+      padding:10px 12px; border-radius: 14px;
+      border:1px solid var(--border);
+      background:rgba(148,163,184,.07);
+      display:flex;justify-content:space-between;align-items:center;
+      font-weight:900;
+    }
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    input, select, textarea{
+      background:rgba(2,6,23,.55);
+      border:1px solid var(--border);
+      color:var(--text);
+      border-radius:14px;
+      padding:10px 12px;
+      outline:none;
+    }
+    input::placeholder, textarea::placeholder{color:rgba(148,163,184,.75)}
+    button{
+      border:1px solid var(--border);
+      background:rgba(148,163,184,.10);
+      color:var(--text);
+      border-radius:14px;
+      padding:10px 12px;
+      cursor:pointer;
+      font-weight:900;
+    }
+    button.primary{background:rgba(11,107,58,.22); border-color:rgba(11,107,58,.45)}
+    button.ok{background:rgba(34,197,94,.20); border-color:rgba(34,197,94,.45)}
+    button.danger{background:rgba(239,68,68,.18); border-color:rgba(239,68,68,.45)}
+    button:disabled{opacity:.6; cursor:not-allowed}
+    .tableWrap{overflow:auto;border-radius:16px;border:1px solid var(--border)}
+    table{width:100%;border-collapse:collapse;min-width:860px}
+    th,td{padding:10px 10px;border-bottom:1px solid rgba(148,163,184,.12);font-size:13px}
+    th{position:sticky;top:0;background:rgba(15,23,42,.92);z-index:2;text-align:left}
+    td.right, th.right{text-align:right}
+    .badge{
+      padding:5px 10px;border-radius:999px;font-weight:1000;font-size:12px;
+      border:1px solid var(--border); background:rgba(148,163,184,.08);
+      display:inline-block;
+    }
+    .badge.in{border-color:rgba(34,197,94,.45);background:rgba(34,197,94,.14)}
+    .badge.out{border-color:rgba(239,68,68,.45);background:rgba(239,68,68,.14)}
+    .toast{
+      position:fixed; right:16px; bottom:16px; z-index:50;
+      padding:12px 14px; border-radius:14px;
+      border:1px solid var(--border);
+      background:rgba(15,23,42,.92);
+      box-shadow: var(--shadow);
+      min-width:260px;
+      display:none;
+    }
+    .toast.show{display:block}
+    .toast.ok{border-color:rgba(34,197,94,.45)}
+    .toast.err{border-color:rgba(239,68,68,.45)}
+    .hide{display:none}
+
+    .center{
+      min-height: calc(100vh - 36px);
+      display:flex; align-items:center; justify-content:center;
+      padding:18px;
+    }
+    .loginBox{
+      max-width:520px; width:100%;
+    }
+    .hint{font-size:12px;color:var(--muted);margin-top:8px}
+
+    #viewLogin.hide{
+      display:none !important;
+      pointer-events:none !important;
+    }
+    #viewApp.hide{
+      display:none !important;
+    }
+
+    .role-badge{
+      padding:4px 10px;
+      border-radius:999px;
+      font-size:11px;
+      font-weight:900;
+      letter-spacing:.3px;
+      border:1px solid var(--border);
+      background:rgba(148,163,184,.10);
+    }
+
+    .role-badge.ADMIN{
+      background:rgba(212,175,55,.20);
+      border-color:rgba(212,175,55,.55);
+    }
+
+    .role-badge.PENGURUS{
+      background:rgba(11,107,58,.18);
+      border-color:rgba(11,107,58,.45);
+    }
+
+    .role-badge.ANGGOTA{
+      background:rgba(34,197,94,.18);
+      border-color:rgba(34,197,94,.45);
+    }
+
+    /* ===============================
+    SUPER MOBILE (Drawer/Bottomsheet)
+    Drop-in patch - KSL
+    =============================== */
+
+  :root{ --tap:44px; }
+
+  /* mobile basics */
+  html{ font-size:16px; }
+  body{ -webkit-text-size-adjust:100%; padding-bottom: env(safe-area-inset-bottom); }
+
+  /* tap target */
+  button, .tab, input, select, textarea{ min-height: var(--tap); font-size:16px; }
+  button{ padding:12px 12px; touch-action: manipulation; }
+  input, select, textarea{ padding:12px 12px; }
+
+  /* sticky topbar */
+  .topbar{ position: sticky; top:0; z-index:30; backdrop-filter: blur(10px); }
+
+  /* ===== Desktop/HP switch helper ===== */
+  .onlyMobile{ display:none !important; }
+  .onlyDesktop{ display:inherit; }
+
+  @media (max-width:720px){
+    .onlyMobile{ display:flex !important; }
+    .onlyDesktop{ display:none !important; }
+
+    .wrap{ padding:12px; }
+
+    /* cards lighter for low-end phones */
+    .card, .topbar, .toast{ box-shadow: 0 10px 24px rgba(0,0,0,.30); }
+
+    /* grid becomes 1 col on phones */
+    .cols2, .cols3{ grid-template-columns: 1fr !important; }
+
+    /* toast full width */
+    .toast{ left:12px; right:12px; bottom:12px; min-width:unset; }
+
+    /* tables: more friendly */
+    table{ min-width: 760px; }
+    .tableWrap{ -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+  }
+
+  /* ===== Mobile top actions ===== */
+  .mobileActions{
+    display:flex; gap:8px; align-items:center; justify-content:flex-end;
+  }
+  .iconBtn{
+    min-height: var(--tap);
+    padding:10px 12px;
+    border-radius:14px;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+  }
+  .iconBtn.primary{ background:rgba(11,107,58,.22); border-color:rgba(11,107,58,.45); }
+
+  /* ===== Bottom Sheet Menu ===== */
+  .sheetOverlay{
+    position:fixed; inset:0; z-index:80;
+    background: rgba(0,0,0,.55);
+    display:none;
+    align-items:flex-end;
+    justify-content:center;
+  }
+  .sheetOverlay.show{ display:flex; }
+
+  .sheet{
+    width:100%;
+    max-width:720px;
+    border:1px solid var(--border);
+    background: linear-gradient(180deg, rgba(16,27,51,.95), rgba(15,23,42,.92));
+    border-radius: 18px 18px 0 0;
+    padding:12px;
+    box-shadow: 0 18px 55px rgba(0,0,0,.55);
+    max-height: 78vh;
+    overflow:auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .sheetHeader{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:10px;
+    padding:6px 4px 10px;
+  }
+  .sheetTitle{ font-weight:1000; letter-spacing:.2px; }
+  .sheetGrid{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:10px;
+  }
+  @media (max-width:380px){
+    .sheetGrid{ grid-template-columns: 1fr; }
+  }
+  .sheetBtn{
+    min-height: var(--tap);
+    border:1px solid var(--border);
+    background: rgba(148,163,184,.10);
+    border-radius: 14px;
+    padding:12px;
+    text-align:left;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+  .sheetBtn b{ font-size:14px; }
+  .sheetBtn span{ font-size:12px; color: var(--muted); }
+  .sheetBtn.active{ background: rgba(11,107,58,.20); border-color: rgba(11,107,58,.45); }
+
+  .kbdHint{
+    font-size:12px;
+    color:var(--muted);
+    margin-top:10px;
+  }
+
+  /* FORCE PHONE MODE (walau Chrome Desktop site) */
+  body.isPhone .cols2,
+  body.isPhone .cols3{ grid-template-columns: 1fr !important; }
+
+  body.isPhone .tabs{ 
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+  body.isPhone .tab{ white-space: nowrap; }
+
+  body.isPhone .toast{
+    left:12px; right:12px; bottom:12px; min-width: unset;
+  }
+
+  .spinner{
+    width:18px;
+    height:18px;
+    border:3px solid #ddd;
+    border-top:3px solid #4f46e5;
+    border-radius:50%;
+    animation:spin 0.8s linear infinite;
+  }
+
+  @keyframes spin{
+    to{ transform:rotate(360deg); }
+  }
+
+  /* =========================
+   🎯 KSL THEME SYSTEM
+   ========================= */
+
+  /* 🔥 DEFAULT = DARK */
+  :root{
+    --bg:#071f14;
+    --panel:#0d2e1e;
+    --card:#123d28;
+    --text:#e5e7eb;
+    --muted:#94a3b8;
+    --border:rgba(148,163,184,.15);
+    --primary:#0b6b3a;
+    --primary2:#22c55e;
+    --danger:#ef4444;
+    --warn:#f59e0b;
+    --shadow:0 10px 30px rgba(0,0,0,.35);
+  }
+
+  /* 🔥 LIGHT MODE */
+  body.light{
+    --bg:#f8fafc;
+    --panel:#ffffff;
+    --card:#ffffff;
+    --text:#0f172a;
+    --muted:#64748b;
+    --border:rgba(15,23,42,.08);
+    --primary:#0b6b3a;
+    --primary2:#16a34a;
+    --danger:#dc2626;
+    --warn:#d97706;
+    --shadow:0 10px 30px rgba(0,0,0,.08);
+  }
+
+  /* =========================
+    🌍 GLOBAL
+    ========================= */
+
+  body{
+    margin:0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: Inter, system-ui, sans-serif;
+    transition: all 0.25s ease;
+  }
+
+  /* 🔥 khusus dark boleh pakai efek */
+  body:not(.light){
+    background:
+      radial-gradient(1200px 600px at 10% -10%, rgba(11,107,58,.15), transparent),
+      radial-gradient(900px 500px at 110% 10%, rgba(34,197,94,.10), transparent),
+      var(--bg);
+  }
+
+  /* =========================
+    🧱 COMPONENT BASE
+    ========================= */
+
+  .card{
+    background: var(--card);
+    border:1px solid var(--border);
+    border-radius:14px;
+    box-shadow: var(--shadow);
+  }
+
+  .panel{
+    background: var(--panel);
+    border:1px solid var(--border);
+    border-radius:14px;
+  }
+
+  input, select{
+    background: var(--panel);
+    border:1px solid var(--border);
+    color: var(--text);
+    padding:8px 10px;
+    border-radius:8px;
+  }
+
+  /* =========================
+    🔘 BUTTON
+    ========================= */
+
+  button{
+    background: var(--panel);
+    border:1px solid var(--border);
+    color: var(--text);
+    padding:8px 12px;
+    border-radius:10px;
+    cursor:pointer;
+    transition: all .2s ease;
+  }
+
+  button:hover{
+    transform: translateY(-1px);
+    box-shadow: var(--shadow);
+  }
+
+  button.primary{
+    background: var(--primary);
+    border:none;
+    color:#fff;
+  }
+
+  /* =========================
+    📊 TABLE
+    ========================= */
+
+  table{
+    width:100%;
+    border-collapse:collapse;
+  }
+
+  th, td{
+    border-bottom:1px solid var(--border);
+    padding:10px;
+    text-align:left;
+  }
+
+  th{
+    color: var(--muted);
+    font-weight:600;
+  }
+
+  /* =========================
+    🧾 TEXT
+    ========================= */
+
+  .muted{
+    color: var(--muted);
+  }
+
+  .badge{
+    background: var(--panel);
+    border:1px solid var(--border);
+    padding:4px 8px;
+    border-radius:8px;
+  }
+
+  /* =========================
+    ⏳ LOADER (BONUS)
+    ========================= */
+
+  .spinner{
+    width:18px;
+    height:18px;
+    border:3px solid #ddd;
+    border-top:3px solid var(--primary);
+    border-radius:50%;
+    animation:spin .8s linear infinite;
+  }
+
+  @keyframes spin{
+    to{ transform:rotate(360deg); }
+  }
+
+  /* =========================
+   🔥 TOPBAR THEME FIX (KSL)
+   ========================= */
+
+  /* 🔹 DEFAULT (DARK) */
+  .topbar{
+    background:
+      linear-gradient(
+        135deg,
+        rgba(15,23,42,.95),
+        rgba(30,41,59,.95)
+      );
+    border:1px solid rgba(148,163,184,.15);
+    border-radius:18px;
+    padding:14px 18px;
+    box-shadow:var(--shadow);
+    transition: all .25s ease;
+  }
+
+  /* 🔹 LIGHT MODE */
+  body.light .topbar{
+    background:
+      linear-gradient(
+        to right,
+        #ffffff,
+        #f1f5f9
+      ) !important;
+    border:1px solid var(--border);
+  }
+
+  /* =========================
+    🧭 TAB BUTTON
+    ========================= */
+
+  .tab{
+    background:rgba(255,255,255,.05);
+    border:1px solid rgba(148,163,184,.15);
+    color:var(--text);
+    padding:8px 14px;
+    border-radius:999px;
+    cursor:pointer;
+    transition: all .2s ease;
+  }
+
+  .tab:hover{
+    transform:translateY(-1px);
+    box-shadow:var(--shadow);
+  }
+
+  /* 🔥 ACTIVE TAB */
+  .tab.active{
+    background:var(--primary);
+    color:#fff;
+    border:none;
+  }
+
+  /* 🔹 LIGHT MODE TAB */
+  body.light .tab{
+    background:var(--panel);
+    border:1px solid var(--border);
+    color:var(--text);
+  }
+
+  body.light .tab.active{
+    background:var(--primary);
+    color:#fff;
+  }
+
+  /* =========================
+    🔘 ICON BUTTON (MOBILE)
+    ========================= */
+
+  .iconBtn{
+    background:var(--panel);
+    border:1px solid var(--border);
+    color:var(--text);
+    padding:8px 10px;
+    border-radius:10px;
+    cursor:pointer;
+    transition: all .2s ease;
+  }
+
+  .iconBtn:hover{
+    transform:translateY(-1px);
+    box-shadow:var(--shadow);
+  }
+
+  /* =========================
+    🎯 ROLE BADGE
+    ========================= */
+
+  .role-badge{
+    background:rgba(11,107,58,.2);
+    color:#bdeccb;
+    padding:4px 10px;
+    border-radius:999px;
+    font-size:12px;
+    font-weight:600;
+  }
+
+  /* 🔹 LIGHT MODE BADGE */
+  body.light .role-badge{
+    background:rgba(11,107,58,.1);
+    color:#0b6b3a;
+  }
+
+  /* =========================================================
+   KSL PREMIUM DASHBOARD REDESIGN
+   Drop-in CSS override
+   Tempel di PALING BAWAH <style>
+   ========================================================= */
+
+/* ---------- THEME TOKENS ---------- */
+:root{
+  --bg:#071f14;
+  --bg-soft:#092518;
+  --panel:#0d2e1e;
+  --panel-2:#0f3422;
+  --card:#123d28;
+  --card-2:#17492f;
+  --text:#e5e7eb;
+  --muted:#94a3b8;
+  --border:rgba(148,163,184,.14);
+
+  --primary:#0b6b3a;
+  --primary-2:#178a4c;
+  --success:#16a34a;
+  --success-2:#22c55e;
+  --danger:#dc2626;
+  --warn:#d97706;
+
+  --shadow-xs:0 1px 2px rgba(0,0,0,.10);
+  --shadow-sm:0 8px 24px rgba(2,6,23,.20);
+  --shadow-md:0 18px 44px rgba(2,6,23,.28);
+  --shadow-lg:0 24px 60px rgba(2,6,23,.34);
+
+  --radius-xl:24px;
+  --radius-lg:18px;
+  --radius-md:14px;
+  --radius-sm:12px;
+}
+
+/* ---------- LIGHT MODE ---------- */
+body.light{
+  --bg:#eef2f7;
+  --bg-soft:#f8fafc;
+  --panel:rgba(255,255,255,.72);
+  --panel-2:#ffffff;
+  --card:rgba(255,255,255,.82);
+  --card-2:#ffffff;
+  --text:#0f172a;
+  --muted:#64748b;
+  --border:rgba(15,23,42,.08);
+
+  --primary:#0b6b3a;
+  --primary-2:#178a4c;
+  --success:#16a34a;
+  --success-2:#22c55e;
+  --danger:#dc2626;
+  --warn:#d97706;
+
+  --shadow-xs:0 1px 2px rgba(15,23,42,.04);
+  --shadow-sm:0 10px 24px rgba(15,23,42,.06);
+  --shadow-md:0 18px 40px rgba(15,23,42,.08);
+  --shadow-lg:0 28px 60px rgba(15,23,42,.10);
+}
+
+/* ---------- GLOBAL ---------- */
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  color:var(--text);
+  background:
+    radial-gradient(1000px 500px at -5% -10%, rgba(11,107,58,.14), transparent 55%),
+    radial-gradient(900px 420px at 110% 0%, rgba(34,197,94,.10), transparent 50%),
+    linear-gradient(180deg, var(--bg-soft), var(--bg));
+  transition:background .25s ease,color .25s ease;
+}
+
+body.light{
+  background:
+    radial-gradient(900px 420px at -10% -10%, rgba(11,107,58,.08), transparent 52%),
+    radial-gradient(800px 360px at 110% 0%, rgba(34,197,94,.06), transparent 50%),
+    linear-gradient(180deg, #f8fbff, #eef2f7);
+}
+
+*{box-sizing:border-box}
+
+.wrap{
+  max-width:1280px;
+  margin:0 auto;
+  padding:22px;
+}
+
+h2{
+  margin:0 0 14px;
+  font-size:15px;
+  font-weight:900;
+  letter-spacing:.1px;
+}
+
+.muted{color:var(--muted)}
+.hide{display:none !important}
+
+/* ---------- TOPBAR ---------- */
+.topbar{
+  display:grid;
+  grid-template-columns: minmax(220px, 320px) 1fr;
+  align-items:start;
+  gap:18px;
+
+  position:sticky;
+  top:12px;
+  z-index:30;
+
+  padding:18px 20px;
+  border-radius:28px;
+  border:1px solid var(--border);
+
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.01)),
+    var(--panel);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.08),
+    var(--shadow-md);
+}
+
+body.light .topbar{
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.72), rgba(255,255,255,.52)),
+    var(--panel);
+}
+
+.brand{
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  min-height:72px;
+}
+
+.brand b{
+  font-size:18px;
+  line-height:1.2;
+  font-weight:1000;
+  letter-spacing:.1px;
+}
+
+.brand span{
+  font-size:12px;
+  line-height:1.45;
+}
+
+/* ---------- ROLE BADGE ---------- */
+.role-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:7px 12px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:1000;
+  border:1px solid var(--border);
+  box-shadow:var(--shadow-xs);
+}
+
+.role-badge.ADMIN{
+  color:#8a6d1a;
+  background:rgba(212,175,55,.16);
+  border-color:rgba(212,175,55,.40);
+}
+.role-badge.PENGURUS{
+  color:#0b6b3a;
+  background:rgba(11,107,58,.10);
+  border-color:rgba(11,107,58,.22);
+}
+.role-badge.ANGGOTA{
+  color:#15803d;
+  background:rgba(34,197,94,.10);
+  border-color:rgba(34,197,94,.18);
+}
+
+/* ---------- TAB AREA ---------- */
+.tabs{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  align-items:center;
+  justify-content:flex-start;
+
+  padding:2px;
+  border-radius:22px;
+}
+
+.tab{
+  appearance:none;
+  border:1px solid var(--border);
+  background:rgba(148,163,184,.08);
+  color:var(--text);
+
+  min-height:48px;
+  padding:0 18px;
+  border-radius:18px;
+
+  font-size:14px;
+  font-weight:900;
+  letter-spacing:.1px;
+  cursor:pointer;
+
+  transition:
+    transform .18s ease,
+    background .18s ease,
+    box-shadow .18s ease,
+    border-color .18s ease,
+    color .18s ease;
+
+  box-shadow:var(--shadow-xs);
+}
+
+body.light .tab{
+  background:rgba(255,255,255,.78);
+}
+
+.tab:hover{
+  transform:translateY(-1px);
+  box-shadow:var(--shadow-sm);
+}
+
+.tab.active{
+  color:#fff;
+  border-color:transparent;
+  background:linear-gradient(135deg, var(--primary), var(--primary-2));
+  box-shadow:0 10px 24px rgba(11,107,58,.28);
+}
+
+#btnTheme,
+#btnThemeMobile{
+  min-width:48px;
+  padding:0 14px;
+}
+
+/* ---------- MOBILE ACTIONS ---------- */
+.mobileActions{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  justify-content:flex-end;
+}
+
+.iconBtn{
+  appearance:none;
+  border:1px solid var(--border);
+  background:rgba(148,163,184,.08);
+  color:var(--text);
+  min-height:46px;
+  padding:0 14px;
+  border-radius:16px;
+  font-weight:900;
+  cursor:pointer;
+  transition:all .18s ease;
+  box-shadow:var(--shadow-xs);
+}
+
+body.light .iconBtn{background:rgba(255,255,255,.82)}
+.iconBtn:hover{
+  transform:translateY(-1px);
+  box-shadow:var(--shadow-sm);
+}
+.iconBtn.primary{
+  color:#fff;
+  border-color:transparent;
+  background:linear-gradient(135deg, var(--primary), var(--primary-2));
+}
+
+/* ---------- LAYOUT ---------- */
+.grid{display:grid;gap:14px}
+.cols2{grid-template-columns:1.45fr .95fr}
+.cols3{grid-template-columns:repeat(3,1fr)}
+
+@media (max-width:1100px){
+  .topbar{grid-template-columns:1fr; gap:14px}
+}
+@media (max-width:980px){
+  .cols2,.cols3{grid-template-columns:1fr}
+}
+@media (max-width:720px){
+  .wrap{padding:14px}
+}
+
+/* ---------- CARDS ---------- */
+.card{
+  border:1px solid var(--border);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01)),
+    var(--card);
+  border-radius:24px;
+  box-shadow:var(--shadow-sm);
+  padding:18px;
+  transition:
+    transform .18s ease,
+    box-shadow .18s ease,
+    border-color .18s ease;
+}
+
+body.light .card{
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.60), rgba(255,255,255,.82)),
+    var(--card);
+}
+
+.card:hover{
+  transform:translateY(-2px);
+  box-shadow:var(--shadow-md);
+}
+
+/* ---------- SUMMARY PILLS ---------- */
+.pill{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:14px;
+
+  min-height:60px;
+  padding:14px 16px;
+  border-radius:18px;
+  border:1px solid var(--border);
+
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015)),
+    rgba(148,163,184,.06);
+
+  box-shadow:var(--shadow-xs);
+  font-weight:900;
+  font-size:13px;
+}
+
+body.light .pill{
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.72), rgba(255,255,255,.88)),
+    rgba(255,255,255,.9);
+}
+
+.pill strong{
+  font-size:15px;
+  font-weight:1000;
+  letter-spacing:.1px;
+}
+
+/* ---------- FORM ---------- */
+.row{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  align-items:center;
+}
+
+input, select, textarea{
+  width:auto;
+  background:rgba(2,6,23,.28);
+  border:1px solid var(--border);
+  color:var(--text);
+  border-radius:16px;
+  padding:11px 13px;
+  outline:none;
+  transition:border-color .18s ease, box-shadow .18s ease, background .18s ease;
+  box-shadow:var(--shadow-xs);
+}
+
+body.light input,
+body.light select,
+body.light textarea{
+  background:rgba(255,255,255,.86);
+}
+
+input:focus, select:focus, textarea:focus{
+  border-color:rgba(11,107,58,.34);
+  box-shadow:0 0 0 4px rgba(11,107,58,.10);
+}
+
+input::placeholder, textarea::placeholder{
+  color:color-mix(in srgb, var(--muted) 86%, transparent);
+}
+
+/* ---------- BUTTONS ---------- */
+button{
+  appearance:none;
+  border:1px solid var(--border);
+  background:rgba(148,163,184,.08);
+  color:var(--text);
+  border-radius:16px;
+  padding:11px 14px;
+  cursor:pointer;
+  font-weight:900;
+  letter-spacing:.1px;
+  transition:
+    transform .18s ease,
+    box-shadow .18s ease,
+    background .18s ease,
+    border-color .18s ease;
+  box-shadow:var(--shadow-xs);
+}
+
+body.light button{background:rgba(255,255,255,.82)}
+
+button:hover{
+  transform:translateY(-1px);
+  box-shadow:var(--shadow-sm);
+}
+
+button.primary{
+  color:#fff;
+  border-color:transparent;
+  background:linear-gradient(135deg, var(--primary), var(--primary-2));
+  box-shadow:0 10px 24px rgba(11,107,58,.22);
+}
+
+button.ok{
+  color:#fff;
+  border-color:transparent;
+  background:linear-gradient(135deg, var(--success), var(--success-2));
+  box-shadow:0 10px 24px rgba(34,197,94,.18);
+}
+
+button.danger{
+  color:#fff;
+  border-color:transparent;
+  background:linear-gradient(135deg, #ef4444, #dc2626);
+  box-shadow:0 10px 24px rgba(239,68,68,.18);
+}
+
+button:disabled{
+  opacity:.6;
+  cursor:not-allowed;
+  transform:none;
+  box-shadow:none;
+}
+
+/* ---------- TABLE ---------- */
+.tableWrap{
+  overflow:auto;
+  border-radius:20px;
+  border:1px solid var(--border);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01)),
+    rgba(148,163,184,.03);
+  box-shadow:var(--shadow-xs);
+}
+
+body.light .tableWrap{
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.7), rgba(255,255,255,.82)),
+    rgba(255,255,255,.86);
+}
+
+table{
+  width:100%;
+  min-width:860px;
+  border-collapse:separate;
+  border-spacing:0;
+}
+
+th, td{
+  padding:12px 12px;
+  border-bottom:1px solid rgba(148,163,184,.10);
+  font-size:13px;
+}
+
+th{
+  position:sticky;
+  top:0;
+  z-index:2;
+  text-align:left;
+  font-size:12px;
+  text-transform:uppercase;
+  letter-spacing:.55px;
+  color:var(--muted);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.01)),
+    var(--panel-2);
+}
+
+body.light th{
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.96), rgba(248,250,252,.96)),
+    var(--panel-2);
+}
+
+td.right, th.right{text-align:right}
+
+/* ---------- BADGE ---------- */
+.badge{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:6px 10px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  background:rgba(148,163,184,.08);
+  font-size:12px;
+  font-weight:1000;
+  line-height:1;
+}
+
+body.light .badge{background:rgba(255,255,255,.88)}
+
+.badge.in{
+  color:#15803d;
+  background:rgba(34,197,94,.10);
+  border-color:rgba(34,197,94,.18);
+}
+.badge.out{
+  color:#b91c1c;
+  background:rgba(239,68,68,.10);
+  border-color:rgba(239,68,68,.18);
+}
+
+/* ---------- TOAST ---------- */
+.toast{
+  position:fixed;
+  right:18px;
+  bottom:18px;
+  z-index:70;
+  min-width:280px;
+  max-width:380px;
+
+  padding:14px 16px;
+  border-radius:18px;
+  border:1px solid var(--border);
+
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01)),
+    var(--panel);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+
+  box-shadow:var(--shadow-lg);
+  display:none;
+}
+
+.toast.show{display:block}
+.toast.ok{border-color:rgba(34,197,94,.28)}
+.toast.err{border-color:rgba(239,68,68,.28)}
+
+@media (max-width:720px){
+  .toast{
+    left:12px;
+    right:12px;
+    bottom:12px;
+    min-width:unset;
+    max-width:none;
+  }
+}
+
+/* ---------- MODAL ---------- */
+#modal{
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+}
+
+#modal > .card{
+  max-width:700px !important;
+  width:100%;
+  border-radius:24px;
+  box-shadow:var(--shadow-lg);
+}
+
+/* ---------- LOGIN ---------- */
+.center{
+  min-height:calc(100vh - 40px);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+}
+
+.loginBox{
+  max-width:560px;
+  width:100%;
+  border-radius:28px;
+  box-shadow:var(--shadow-lg);
+}
+
+/* ---------- LOADER ---------- */
+#globalLoader{
+  backdrop-filter:blur(6px);
+  -webkit-backdrop-filter:blur(6px);
+}
+
+#globalLoader > div{
+  background:var(--panel-2) !important;
+  color:var(--text);
+  border:1px solid var(--border);
+  border-radius:20px !important;
+  box-shadow:var(--shadow-lg) !important;
+}
+
+.spinner{
+  width:18px;
+  height:18px;
+  border:3px solid rgba(148,163,184,.22);
+  border-top:3px solid var(--primary);
+  border-radius:50%;
+  animation:spin .8s linear infinite;
+}
+
+@keyframes spin{
+  to{transform:rotate(360deg)}
+}
+
+/* ---------- SHEET MENU ---------- */
+.sheetOverlay{
+  background:rgba(2,6,23,.45);
+  backdrop-filter:blur(6px);
+  -webkit-backdrop-filter:blur(6px);
+}
+.sheet{
+  border:1px solid var(--border);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.01)),
+    var(--panel-2);
+  border-radius:24px 24px 0 0;
+  box-shadow:var(--shadow-lg);
+}
+.sheetBtn{
+  border:1px solid var(--border);
+  background:rgba(148,163,184,.08);
+  border-radius:18px;
+  box-shadow:var(--shadow-xs);
+}
+body.light .sheetBtn{background:rgba(255,255,255,.88)}
+.sheetBtn.active{
+  border-color:transparent;
+  background:linear-gradient(135deg, var(--primary), var(--primary-2));
+  color:#fff;
+}
+.sheetBtn.active span{color:rgba(255,255,255,.84)}
+
+/* ---------- SMALL POLISH ---------- */
+#dashRow1, #dashRow2{
+  align-items:stretch;
+}
+
+#quickActions button{
+  min-width:160px;
+}
+
+#saldoCard h2,
+#tab-pdf h2,
+#tab-users h2,
+#tab-anggota h2,
+#tab-trx h2{
+  margin-bottom:12px;
+}
+
+/* ---------- MOBILE REFINEMENT ---------- */
+@media (max-width:720px){
+  .topbar{
+    padding:16px;
+    border-radius:22px;
+    top:8px;
+  }
+
+  .brand b{font-size:16px}
+  .card{
+    border-radius:20px;
+    padding:16px;
+  }
+
+  .pill{
+    min-height:56px;
+    border-radius:16px;
+    padding:12px 14px;
+  }
+
+  button, input, select, textarea{
+    min-height:46px;
+  }
+}
+
+/* =========================
+   🔥 FIX TEXT BUTTON VISIBILITY
+   ========================= */
+
+/* 🔹 BUTTON NORMAL */
+button{
+  color:var(--text) !important;
+}
+
+/* 🔹 BUTTON LIGHT MODE (WAJIB) */
+body.light button{
+  color:#0f172a !important;
+}
+
+/* 🔹 BUTTON PRIMARY */
+button.primary{
+  color:#fff !important;
+}
+
+/* 🔹 BUTTON SUCCESS */
+button.ok{
+  color:#fff !important;
+}
+
+/* 🔹 BUTTON DANGER */
+button.danger{
+  color:#fff !important;
+}
+
+/* 🔹 TAB BUTTON */
+.tab{
+  color:var(--text) !important;
+}
+
+body.light .tab{
+  color:#0f172a !important;
+}
+
+/* 🔹 ACTIVE TAB */
+.tab.active{
+  color:#fff !important;
+}
+
+/* 🔹 ICON BUTTON */
+.iconBtn{
+  color:var(--text) !important;
+}
+
+body.light .iconBtn{
+  color:#0f172a !important;
+}
+
+/* 🔹 PLACEHOLDER INPUT */
+input::placeholder,
+textarea::placeholder{
+  color:#64748b !important;
+  opacity:1;
+}
+
+/* 🔹 SELECT TEXT FIX */
+select{
+  color:var(--text) !important;
+}
+
+body.light select{
+  color:#0f172a !important;
+}
+
+
+
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand">
+        <div class="row" style="gap:8px;align-items:center">
+          <b>Tabungan Anggota Ansor Andulang <span class="muted">v2</span></b>
+
+          <!-- 🔐 BADGE ROLE -->
+          <span id="roleBadge" class="role-badge hide">ROLE</span>
+        </div>
+        <span class="muted">PR GP Ansor Ranting Andulang • DB: GSheet • Auth: Token • PageSize 50</span>
+      </div>
+
+      <div class="tabs onlyDesktop" id="topTabs" style="display:none">
+        <button class="tab active" data-tab="dash">📊 Dashboard</button>
+        <button class="tab" data-tab="anggota" id="tabAnggotaBtn">👨‍🎓 Anggota</button>
+        <button class="tab" data-tab="trx">💰 Transaksi</button>
+        <button class="tab" data-tab="pdf">📄 PDF</button>
+        <button class="tab" id="tabUsersBtn" data-tab="users">👤 Users</button>
+        <button class="tab" id="tabChangePassBtn" onclick="openChangePassModal_()">🔒 Ganti Password</button>
+        <button class="tab" id="btnTheme" onclick="toggleTheme()">🌙</button>
+        <button class="tab" onclick="logout()">🚪 Logout</button>
+      </div>
+
+      <!-- ===== SUPER MOBILE ACTIONS (HP) ===== -->
+      <div class="mobileActions onlyMobile" id="mobileBar" style="display:none">
+        <button class="iconBtn primary" onclick="openSheetMenu_()">☰ Menu</button>
+        <button class="iconBtn" onclick="refreshAll()">🔄 Refresh</button>
+        <button class="iconBtn" id="btnThemeMobile" onclick="toggleTheme()">🌙</button>
+        <button class="iconBtn" onclick="logout()">🚪</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- LOGIN -->
+  <div id="viewLogin" class="center">
+    <div class="card loginBox">
+      <h2>Login</h2>
+      <div class="row" style="gap:8px;margin-bottom:10px">
+        <button class="tab active" id="btnModeStaff" onclick="setLoginMode('STAFF')">👤 Admin</button>
+        <button class="tab" id="btnModeAnggota" onclick="setLoginMode('ANGGOTA')">👤 Anggota</button>
+      </div>
+
+      <div id="staffForm">
+        <div class="row" style="gap:8px">
+          <input id="staffUser" placeholder="Username" style="flex:1">
+          <input id="staffPass" placeholder="Password" type="password" style="flex:1">
+        </div>
+        <div class="row" style="justify-content:flex-end;margin-top:10px">
+          <button class="primary" onclick="loginStaff()">Login Admin</button>
+        </div>
+        <div class="hint">Default admin: <b>admin / 123456</b> (bisa diganti nanti).</div>
+      </div>
+
+      <div id="anggotaForm" class="hide">
+        <div class="row" style="gap:8px">
+          <input id="anggotaNia" placeholder="NIA" style="flex:1">
+          <input id="anggotaPin" placeholder="PIN (6 digit)" style="flex:1">
+        </div>
+        <div class="row" style="justify-content:flex-end;margin-top:10px">
+          <button class="primary" onclick="loginAnggota()">Login Anggota</button>
+        </div>
+        <div class="hint">PIN didapat dari sekolah/admin. (Kolom <b>pin</b> di sheet ANGGOTA)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- APP -->
+  <div id="viewApp" class="wrap hide">
+    <!-- DASHBOARD -->
+    <div id="tab-dash" class="grid cols2" style="margin-top:14px">
+      <div class="card">
+        <h2>Ringkasan</h2>
+        <div class="grid cols3" id="dashRow1"></div>
+        <div class="grid cols2" style="margin-top:12px" id="dashRow2"></div>
+        <div class="muted" style="margin-top:10px;font-size:12px">
+          Format tanggal di UI harus <b>dd-mm-yyyy</b> (contoh: 06-01-2026).
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Aksi Cepat</h2>
+        <div class="row" id="quickActions"></div>
+        <div class="muted" style="margin-top:10px;font-size:12px" id="quickHint"></div>
+      </div>
+    </div>
+
+    <!-- ANGGOTA (staff) -->
+    <div id="tab-anggota" class="grid hide" style="margin-top:14px">
+      <div class="card">
+        <h2>Master Anggota</h2>
+        <div class="row" style="gap:8px">
+          <input id="sQ" placeholder="Cari NIA / Nama / Unit / ID..." style="min-width:260px" onkeydown="if(event.key==='Enter') loadAnggota(1)">
+
+          <select id="sUnit" onchange="loadAnggota(1)">
+            <option value="">Semua Unit</option>
+          </select>
+
+          <select id="sStatus" onchange="loadAnggota(1)">
+            <option value="">Semua Status</option>
+            <option value="AKTIF">AKTIF</option>
+            <option value="NONAKTIF">NONAKTIF</option>
+            <option value="KELUAR">KELUAR</option>
+          </select>
+
+          <button class="primary" onclick="loadAnggota(1)">Cari</button>
+
+          <!-- 🔥 TAMBAHAN -->
+          <button onclick="exportAnggota()">⬇ Export</button>
+          <button onclick="downloadTemplateAnggota()">📄 Template</button>
+          <button onclick="triggerImportAnggota()">⬆ Import</button>
+
+          <button onclick="openAnggotaForm()">+ Tambah</button>
+
+          <!-- hidden file -->
+          <input type="file" id="fileImportAnggota" accept=".xlsx,.csv" style="display:none" onchange="handleImportAnggota(this)">
+        </div>
+
+        <div class="muted" style="font-size:12px;margin-top:10px">
+          Geser tabel ke kanan/kiri untuk lihat kolom lainnya ⇄
+        </div>
+
+        <div class="tableWrap" style="margin-top:12px">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:170px">ID</th>
+                <th style="width:140px">NIA</th>
+                <th>Nama</th>
+                <th style="width:120px">Unit</th>
+                <th style="width:110px">Status</th>
+                <th style="width:110px">PIN</th>
+                <th class="right" style="width:210px">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="sBody"></tbody>
+          </table>
+        </div>
+
+        <div class="row" style="justify-content:space-between;margin-top:10px">
+          <div class="muted" id="sInfo">-</div>
+          <div class="row" style="gap:8px">
+            <button onclick="sPrev()">◀</button>
+            <div class="badge" id="sPage">Page 1/1</div>
+            <button onclick="sNext()">▶</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TRANSAKSI -->
+    <div id="tab-trx" class="grid hide" style="margin-top:14px">
+      <div class="card">
+        <h2>Transaksi Tabungan</h2>
+
+        <div class="row" id="trxFilters" style="gap:8px"></div>
+
+        <div class="tableWrap" style="margin-top:12px">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:170px">ID</th>
+                <th style="width:120px">Tanggal</th>
+                <th style="width:140px">NIA</th>
+                <th>Nama</th>
+                <th style="width:110px">Unit</th>
+                <th style="width:90px">Type</th>
+                <th class="right" style="width:140px">Nominal</th>
+                <th>Catatan</th>
+                <th class="right" style="width:180px">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="tBody"></tbody>
+          </table>
+        </div>
+
+        <div class="row" style="justify-content:space-between;margin-top:10px">
+          <div class="muted" id="tInfo">-</div>
+          <div class="row" style="gap:8px">
+            <button onclick="tPrev()">◀</button>
+            <div class="badge" id="tPage">Page 1/1</div>
+            <button onclick="tNext()">▶</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" id="saldoCard">
+        <h2>Saldo</h2>
+        <div class="muted" style="font-size:12px;margin-bottom:10px" id="saldoHint"></div>
+        <div class="tableWrap">
+          <table style="min-width:700px">
+            <thead>
+              <tr>
+                <th style="width:140px">NIA</th>
+                <th>Nama</th>
+                <th style="width:120px">Unit</th>
+                <th class="right" style="width:180px">Saldo</th>
+              </tr>
+            </thead>
+            <tbody id="saldoBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- PDF -->
+    <div id="tab-pdf" class="grid hide" style="margin-top:14px">
+      <div class="card">
+        <h2>Export PDF Bulanan</h2>
+        <div class="muted" style="font-size:12px;margin-bottom:10px">
+          Format bulan: <b>mm-yyyy</b> (contoh: 01-2026). Anggota hanya bisa export untuk dirinya.
+        </div>
+
+        <div class="row" style="gap:8px">
+          <select id="pdfAnggota" style="min-width:320px"></select>
+          <input id="pdfMonth" placeholder="mm-yyyy (contoh: 01-2026)" style="width:220px">
+          <button class="primary" onclick="genPdf()">Buat PDF</button>
+        </div>
+
+        <div id="pdfOut" class="muted" style="margin-top:12px"></div>
+      </div>
+    </div>
+
+    <!-- USERS (Admin only) -->
+    <div id="tab-users" class="grid hide" style="margin-top:14px">
+      <div class="card">
+        <h2>Manajemen Users</h2>
+        <div class="muted" style="font-size:12px;margin-bottom:10px">
+          Hanya <b>ADMIN</b> yang bisa menambah / menghapus user. Password disimpan dalam bentuk hash.
+        </div>
+
+        <div class="row" style="gap:8px">
+          <input id="uQ" placeholder="Cari username / nama..." style="min-width:280px" onkeydown="if(event.key==='Enter') loadUsers(1)">
+          <select id="uRole" onchange="loadUsers(1)">
+            <option value="">Semua Role</option>
+            <option value="ADMIN">ADMIN</option>
+            <option value="PENGURUS">PENGURUS</option>
+          </select>
+          <select id="uStatus" onchange="loadUsers(1)">
+            <option value="">Semua Status</option>
+            <option value="AKTIF">AKTIF</option>
+            <option value="NONAKTIF">NONAKTIF</option>
+          </select>
+
+          <button class="primary" onclick="loadUsers(1)">Filter</button>
+          <button class="ok" onclick="openUserForm()">+ Tambah User</button>
+        </div>
+
+        <div class="tableWrap" style="margin-top:12px">
+          <table style="min-width:900px">
+            <thead>
+              <tr>
+                <th style="width:220px">Username</th>
+                <th>Nama</th>
+                <th style="width:120px">Role</th>
+                <th style="width:120px">Status</th>
+                <th style="width:180px">Updated</th>
+                <th class="right" style="width:220px">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="uBody"></tbody>
+          </table>
+        </div>
+
+        <div class="row" style="justify-content:space-between;margin-top:10px">
+          <div class="muted" id="uInfo">-</div>
+          <div class="row" style="gap:8px">
+            <button onclick="uPrev()">◀</button>
+            <div class="badge" id="uPage">Page 1/1</div>
+            <button onclick="uNext()">▶</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+
+
+  <!-- TOAST -->
+  <div id="toast" class="toast">
+    <b id="toastTitle">Info</b>
+    <div id="toastMsg" class="muted" style="margin-top:6px"></div>
+  </div>
+
+  <!-- ===== SUPER MOBILE: BOTTOM SHEET MENU ===== -->
+  <div id="sheetOverlay" class="sheetOverlay" onclick="sheetOverlayClick_(event)">
+    <div class="sheet" onclick="event.stopPropagation()">
+      <div class="sheetHeader">
+        <div>
+          <div class="sheetTitle">☰ Menu</div>
+          <div class="muted" style="font-size:12px">Navigasi cepat + aksi penting</div>
+        </div>
+        <button onclick="closeSheetMenu_()">✕</button>
+      </div>
+
+      <div class="sheetGrid" id="sheetGrid"></div>
+      <div class="kbdHint">Tip: setelah pilih menu, sheet akan menutup otomatis.</div>
+    </div>
+  </div>
+
+
+  <!-- MODAL (FIXED: default none, only show via JS) -->
+  <div id="modal" class="hide" style="position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:16px">
+    <div class="card" style="max-width:640px;width:100%">
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <h2 id="mTitle" style="margin:0">Form</h2>
+        <button onclick="closeModal()">✕</button>
+      </div>
+      <div id="mBody" style="margin-top:10px"></div>
+    </div>
+  </div>
+
+  <div id="globalLoader" style="
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.4);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:9999;
+  ">
+    <div style="
+      background:#fff;
+      padding:20px 30px;
+      border-radius:14px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      box-shadow:0 10px 30px rgba(0,0,0,0.2);
+      font-weight:600;
+    ">
+      <div class="spinner"></div>
+      Loading...
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+  <script>
+    // ⚠️ WAJIB DIISI: ganti dengan URL Web App Apps Script Anda (yang diakhiri /exec)
+    // Ambil dari: Apps Script > Deploy > Manage deployments > URL Aplikasi web
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyDLy7wSkMSWhqdwND0rmaDVesLrg_j0u8A4ir02rf5y22SsSsKiSMrzYOaiaeqI6EYQg/exec';
+
+    const PAGE_SIZE = 50;
+
+    const STATE = {
+      token: '',
+      me: null,            // {role, username/name, ...}
+      anggota: { page:1, pages:1 },
+      trx:   { page:1, pages:1, saldoMap:{} },
+      anggotaListForSelect: [],
+    };
+
+    function call(action, payload){
+      payload = payload || {};
+      if(STATE.token) payload.token = STATE.token;
+
+      // Catatan: Content-Type 'text/plain' sengaja dipakai (bukan application/json)
+      // supaya browser tidak mengirim CORS preflight (OPTIONS) yang tidak didukung
+      // Apps Script Web App. Body-nya tetap JSON biasa, cukup di-parse manual di server.
+      return fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action, payload }),
+      })
+        .then(r => {
+          if(!r.ok) throw new Error('HTTP ' + r.status + ' dari server');
+          return r.json();
+        });
+    }
+
+    function fmtRp(n){
+      n = Number(n||0);
+      return 'Rp ' + new Intl.NumberFormat('id-ID').format(n);
+    }
+    function fmtInt(n){
+      n = Number(n||0);
+      return new Intl.NumberFormat('id-ID').format(n);
+    }
+    function esc(s){
+      return String(s ?? '').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
+    }
+
+    function toast(msg, ok=true){
+      const el = document.getElementById('toast');
+      document.getElementById('toastTitle').textContent = ok ? '✅ OK' : '❌ Error';
+      document.getElementById('toastMsg').textContent = msg;
+      el.className = 'toast show ' + (ok ? 'ok':'err');
+      setTimeout(()=> el.className='toast', 2400);
+    }
+
+    function openModal(title, html){
+      document.getElementById('mTitle').textContent = title;
+      document.getElementById('mBody').innerHTML = html;
+      const m = document.getElementById('modal');
+      m.classList.remove('hide');
+      m.style.display = 'flex';
+    }
+    function closeModal(){
+      const m = document.getElementById('modal');
+      m.classList.add('hide');
+      m.style.display = 'none';
+      document.getElementById('mBody').innerHTML = '';
+    }
+
+    // ===== angka separator (input) =====
+    function onlyDigits(s){ return String(s||'').replace(/[^\d]/g,''); }
+    function formatIdNumber(n){ return new Intl.NumberFormat('id-ID').format(Number(n||0)); }
+    function bindNumberSeparator(inputEl){
+      if(!inputEl) return;
+      const apply = ()=>{
+        const raw = onlyDigits(inputEl.value);
+        inputEl.dataset.raw = raw;
+        inputEl.value = raw ? formatIdNumber(raw) : '';
+      };
+      inputEl.addEventListener('input', apply);
+      inputEl.addEventListener('blur', apply);
+      apply();
+    }
+    function getNumberRaw(inputEl){
+      return Number((inputEl?.dataset?.raw) || onlyDigits(inputEl?.value) || 0);
+    }
+
+    // ===== login mode =====
+    let LOGIN_MODE = 'STAFF';
+    function setLoginMode(mode){
+      LOGIN_MODE = mode;
+      document.getElementById('btnModeStaff').classList.toggle('active', mode==='STAFF');
+      document.getElementById('btnModeAnggota').classList.toggle('active', mode==='ANGGOTA');
+      document.getElementById('staffForm').classList.toggle('hide', mode!=='STAFF');
+      document.getElementById('anggotaForm').classList.toggle('hide', mode!=='ANGGOTA');
+    }
+
+    // ===== Tabs handler =====
+    function initTabs_(){
+      document.querySelectorAll('#topTabs .tab[data-tab]').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+        // 🔒 blok semua fitur sampai password diganti
+        if(mustChangePass_()){
+          toast('Akun wajib mengganti password terlebih dahulu.', false);
+          openChangePassModal_();
+          return;
+        }
+
+          document.querySelectorAll('#topTabs .tab[data-tab]').forEach(x=>x.classList.remove('active'));
+          btn.classList.add('active');
+          const tab = btn.dataset.tab;
+
+          document.getElementById('tab-dash').classList.toggle('hide', tab!=='dash');
+          document.getElementById('tab-anggota').classList.toggle('hide', tab!=='anggota');
+          document.getElementById('tab-trx').classList.toggle('hide', tab!=='trx');
+          document.getElementById('tab-pdf').classList.toggle('hide', tab!=='pdf');
+          document.getElementById('tab-users').classList.toggle('hide', tab!=='users');
+
+          if(tab==='dash') loadDashboard();
+          if(tab==='anggota') loadAnggota(STATE.anggota.page);
+          if(tab==='trx') loadTrx(STATE.trx.page);
+          if(tab==='pdf') initPdfPanel_();
+          if(tab==='users') loadUsers(1);
+        });
+      });
+    }
+
+    // ===== Login / Logout =====
+    async function loginStaff(){
+      try{
+        const username = (document.getElementById('staffUser').value||'').trim();
+        const password = (document.getElementById('staffPass').value||'').trim();
+        const res = await call('auth_staff_login', { username, password });
+        if(!res.ok) throw new Error(res.message||'Login gagal');
+        setToken_(res.token);
+        STATE.me = res.me;
+
+
+        toast('Login admin sukses');
+        enterApp_();
+      }catch(e){
+        toast(String(e.message||e), false);
+      }
+    }
+
+    async function loginAnggota(){
+      try{
+        const nia = (document.getElementById('anggotaNia').value||'').trim();
+        const pin = (document.getElementById('anggotaPin').value||'').trim();
+        const res = await call('auth_anggota_login', { nia, pin });
+        if(!res.ok) throw new Error(res.message||'Login gagal');
+        STATE.token = res.token;
+        STATE.me = res.me;
+
+        toast('Login anggota sukses');
+        enterApp_();
+      }catch(e){
+        toast(String(e.message||e), false);
+      }
+    }
+
+    async function logout(){
+      try{
+        if(STATE.token){
+          await call('auth_logout', { token: STATE.token });
+        }
+      }catch(e){}
+
+      // reset auth state
+      setToken_('');
+      STATE.me = null;
+
+      // === reset UI ===
+      const login = document.getElementById('viewLogin');
+      const app   = document.getElementById('viewApp');
+      const tabs  = document.getElementById('topTabs');
+      const badge = document.getElementById('roleBadge');
+
+      if(app){
+        app.classList.add('hide');
+        app.style.display = 'none';
+      }
+
+      if(login){
+        login.classList.remove('hide');
+        login.style.display = 'flex';
+        login.style.pointerEvents = 'auto';
+      }
+
+      if(tabs){
+        tabs.style.display = 'none';
+      }
+
+      // 🔐 sembunyikan badge role
+      if(badge){
+        badge.className = 'role-badge hide';
+        badge.textContent = '';
+      }
+
+      toast('Logout');
+    }
+
+
+
+    async function enterApp_(){
+      const login = document.getElementById('viewLogin');
+      const app   = document.getElementById('viewApp');
+      const tabs  = document.getElementById('topTabs');
+
+      // 🔒 matikan login layer total
+      login.classList.add('hide');
+      login.style.display = 'none';
+      login.style.pointerEvents = 'none';
+
+      // ✅ tampilkan app
+      app.classList.remove('hide');
+      app.style.display = 'block';
+
+      tabs.style.display = 'flex';
+
+      // ===== ROLE BADGE =====
+      const badge = document.getElementById('roleBadge');
+      if(badge && STATE.me){
+        badge.textContent = `👤 ${STATE.me.role}`;
+        badge.className = `role-badge ${STATE.me.role}`;
+        badge.classList.remove('hide');
+      }
+
+
+      // role-based visibility (SAFE)
+      const isStaff = (STATE.me.role === 'ADMIN' || STATE.me.role === 'PENGURUS');
+      const isAdmin = (STATE.me.role === 'ADMIN');
+
+      const elAnggota = document.getElementById('tabAnggotaBtn');
+      if(elAnggota) elAnggota.style.display = isStaff ? '' : 'none';
+
+      const elTrx = document.getElementById('tabTrxBtn');
+      if(elTrx) elTrx.style.display = isStaff ? '' : 'none';
+
+      const elPdf = document.getElementById('tabPdfBtn');
+      if(elPdf) elPdf.style.display = ''; // PDF boleh staff & anggota
+
+      const elUsers = document.getElementById('tabUsersBtn');
+      if(elUsers) elUsers.style.display = isAdmin ? '' : 'none';
+
+
+      renderQuickActions_();
+      renderTrxFilters_();
+
+      document.getElementById('saldoHint').textContent = isStaff
+        ? 'Admin: saldo tabel menampilkan ringkasan.'
+        : 'Anggota: saldo khusus akun ini.';
+
+      initTabs_();
+
+      // 🔒 jika staff wajib ganti password, jangan panggil endpoint lain (akan ditolak server)
+      if(mustChangePass_()){
+        document.querySelectorAll('#topTabs .tab').forEach(b=>{
+          const t = b.getAttribute('data-tab');
+          // hanya dashboard + ganti password yang boleh
+          if(t && t !== 'dash') b.style.display = 'none';
+        });
+
+        // pastikan tombol ganti password tetap terlihat
+        const cp = document.getElementById('tabChangePassBtn');
+        if(cp) cp.style.display = '';
+
+        openChangePassModal_();
+        return;
+      }
+
+
+      // normal flow
+      await refreshAll();
+
+    }
+
+
+    function renderQuickActions_(){
+      const qa = document.getElementById('quickActions');
+      const hint = document.getElementById('quickHint');
+      const isStaff = (STATE.me.role === 'ADMIN' || STATE.me.role === 'PENGURUS');
+
+      if(isStaff){
+        qa.innerHTML = `
+          <button class="primary" onclick="refreshAll()">🔄 Refresh</button>
+          <button class="ok" onclick="openTrxForm()">➕ Input Transaksi</button>
+          <button onclick="openAnggotaForm()">➕ Tambah Anggota</button>
+          <button onclick="clearCache()">🧹 Clear Cache</button>
+          <button onclick="openChangePassModal_()">🔒 Ganti Password</button>
+
+        `;
+        hint.textContent = 'Admin bisa input transaksi & kelola anggota. Cache hanya untuk UI agar enteng.';
+      }else{
+        qa.innerHTML = `
+          <button class="primary" onclick="refreshAll()">🔄 Refresh</button>
+          <button onclick="clearCache()">🧹 Clear Cache</button>
+        `;
+        hint.textContent = 'Anggota hanya view-only. Bisa lihat saldo, riwayat, dan export PDF bulanan.';
+      }
+    }
+
+    function renderTrxFilters_(){
+      const wrap = document.getElementById('trxFilters');
+      const isStaff = (STATE.me.role === 'ADMIN' || STATE.me.role === 'PENGURUS');
+
+      if(isStaff){
+        wrap.innerHTML = `
+          <input id="tQ" placeholder="Cari NIA / Nama / Catatan / ID..." style="min-width:280px" onkeydown="if(event.key==='Enter') loadTrx(1)">
+          <select id="tUnit" onchange="loadTrx(1)"><option value="">Semua Unit</option></select>
+          <select id="tType" onchange="loadTrx(1)">
+            <option value="">IN + OUT</option>
+            <option value="IN">IN (Setor)</option>
+            <option value="OUT">OUT (Tarik)</option>
+          </select>
+          <input id="tFrom" placeholder="Dari dd-mm-yyyy" style="width:160px" onkeydown="if(event.key==='Enter') loadTrx(1)">
+          <input id="tTo" placeholder="Sampai dd-mm-yyyy" style="width:160px" onkeydown="if(event.key==='Enter') loadTrx(1)">
+          <button class="primary" onclick="loadTrx(1)">Filter</button>
+          <button class="ok" onclick="openTrxForm()">+ Input</button>
+        `;
+      }else{
+        wrap.innerHTML = `
+          <select id="tType" onchange="loadTrx(1)">
+            <option value="">IN + OUT</option>
+            <option value="IN">IN (Setor)</option>
+            <option value="OUT">OUT (Tarik)</option>
+          </select>
+          <input id="tFrom" placeholder="Dari dd-mm-yyyy" style="width:160px" onkeydown="if(event.key==='Enter') loadTrx(1)">
+          <input id="tTo" placeholder="Sampai dd-mm-yyyy" style="width:160px" onkeydown="if(event.key==='Enter') loadTrx(1)">
+          <button class="primary" onclick="loadTrx(1)">Filter</button>
+        `;
+      }
+    }
+
+    async function clearCache(){
+      try{
+        const res = await call('cache_refresh', {});
+        if(!res.ok) throw new Error(res.message || 'Gagal clear cache');
+        toast('Cache dibersihkan');
+        await refreshAll();
+      }catch(e){
+        toast(String(e.message||e), false);
+      }
+    }
+
+    async function refreshAll(){
+      await loadDashboard();
+      if(STATE.me.role === 'ADMIN' || STATE.me.role === 'PENGURUS'){
+        await loadAnggota(1);
+      }
+      await loadTrx(1);
+      await initPdfPanel_();
+    }
+
+    /* =========================
+       DASHBOARD
+    ========================= */
+    async function loadDashboard(){
+      try{
+        const res = await call('dashboard', {});
+        if(!res.ok) throw new Error(res.message||'Gagal load dashboard');
+
+        const isStaff = (STATE.me.role === 'ADMIN' || STATE.me.role === 'PENGURUS');
+        const row1 = document.getElementById('dashRow1');
+        const row2 = document.getElementById('dashRow2');
+
+        if(isStaff){
+          row1.innerHTML = `
+            <div class="pill">Total Anggota <strong>${fmtInt(res.stats.anggotaTotal||0)}</strong></div>
+            <div class="pill">Total Transaksi <strong>${fmtInt(res.stats.trxTotal||0)}</strong></div>
+            <div class="pill">Total Saldo <strong>${fmtRp(res.stats.totalSaldo||0)}</strong></div>
+          `;
+          row2.innerHTML = `
+            <div class="pill">Setoran Hari Ini <strong>${fmtRp(res.stats.inToday||0)}</strong></div>
+            <div class="pill">Penarikan Hari Ini <strong>${fmtRp(res.stats.outToday||0)}</strong></div>
+          `;
+        }else{
+          row1.innerHTML = `
+            <div class="pill">Nama <strong>${esc(res.stats.anggotaName||STATE.me.name||'')}</strong></div>
+            <div class="pill">Unit <strong>${esc(res.stats.unit||STATE.me.unit||'')}</strong></div>
+            <div class="pill">Saldo <strong>${fmtRp(res.stats.saldo||0)}</strong></div>
+          `;
+          row2.innerHTML = `
+            <div class="pill">Setoran Hari Ini <strong>${fmtRp(res.stats.inToday||0)}</strong></div>
+            <div class="pill">Penarikan Hari Ini <strong>${fmtRp(res.stats.outToday||0)}</strong></div>
+          `;
+        }
+      }catch(e){
+        toast(String(e.message||e), false);
+      }
+    }
+
+    /* =========================
+       ANGGOTA (Admin)
+    ========================= */
+    async function loadAnggota(page){
+      try{
+        const q = (document.getElementById('sQ')?.value||'').trim();
+        const unit = (document.getElementById('sUnit')?.value||'').trim();
+        const status= (document.getElementById('sStatus')?.value||'').trim();
+
+        const res = await call('anggota_list', { page, pageSize: PAGE_SIZE, q, unit, status });
+        if(!res.ok) throw new Error(res.message||'Gagal load anggota');
+
+        STATE.anggota.page = res.page;
+        STATE.anggota.pages = res.pages;
+
+        // unit filter
+        const sel = document.getElementById('sUnit');
+        if(sel){
+          const cur = sel.value;
+          sel.innerHTML = `<option value="">Semua Unit</option>` + (res.classes||[])
+            .map(k=>`<option value="${esc(k)}">${esc(k)}</option>`).join('');
+          sel.value = cur;
+        }
+
+        const body = document.getElementById('sBody');
+        body.innerHTML = (res.items||[]).map(s=>`
+          <tr>
+            <td>${esc(s.id||'')}</td>
+            <td>${esc(s.nia||'')}</td>
+            <td>${esc(s.nama||'')}</td>
+            <td>${esc(s.unit||'')}</td>
+            <td><span class="badge">${esc(s.status||'')}</span></td>
+            <td><span class="badge">${esc(s.pin||'')}</span></td>
+            <td class="right">
+              <button onclick="openAnggotaForm('${esc(s.id)}')">✏️ Edit</button>
+              <button class="danger" onclick="delAnggota('${esc(s.id)}')">🗑 Hapus</button>
+            </td>
+          </tr>
+        `).join('') || `<tr><td colspan="7" class="muted">Tidak ada data.</td></tr>`;
+
+        document.getElementById('sInfo').textContent =
+          `Total: ${fmtInt(res.total)} • Page ${res.page}/${res.pages}`;
+
+        document.getElementById('sPage').textContent = `Page ${res.page}/${res.pages}`;
+      }catch(e){
+        toast(String(e.message||e), false);
+      }
+    }
+    function sPrev(){ if(STATE.anggota.page>1) loadAnggota(STATE.anggota.page-1); }
+    function sNext(){ if(STATE.anggota.page<STATE.anggota.pages) loadAnggota(STATE.anggota.page+1); }
+
+    function openAnggotaForm(id){
+      const isEdit = !!id;
+      const html = `
+        <div class="grid cols2">
+          <input id="fSId" placeholder="ID (kosongkan untuk auto)" value="${isEdit?esc(id):''}">
+          <input id="fSNia" placeholder="NIA">
+          <input id="fSNama" placeholder="Nama">
+          <input id="fSUnit" placeholder="Unit">
+          <select id="fSStatus">
+            <option value="AKTIF">AKTIF</option>
+            <option value="NONAKTIF">NONAKTIF</option>
+            <option value="KELUAR">KELUAR</option>
+          </select>
+          <input id="fSPin" placeholder="PIN (6 digit, kosong = auto)">
+        </div>
+        <div class="row" style="justify-content:flex-end;margin-top:12px">
+          <button class="primary" onclick="saveAnggota()">Simpan</button>
+        </div>
+      `;
+      openModal(isEdit?'Edit Anggota':'Tambah Anggota', html);
+
+      if(isEdit){
+        // prefill dari baris tabel (cache ringan)
+        const row = Array.from(document.querySelectorAll('#sBody tr'))
+          .find(tr => tr.children[0]?.textContent === id);
+        if(row){
+          document.getElementById('fSNia').value = row.children[1].textContent;
+          document.getElementById('fSNama').value = row.children[2].textContent;
+          document.getElementById('fSUnit').value = row.children[3].textContent;
+          document.getElementById('fSStatus').value = row.children[4].innerText.trim();
+          document.getElementById('fSPin').value = row.children[5].innerText.trim();
+        }
+      }
+    }
+
+    async function saveAnggota(){
+      try{
+        const id = (document.getElementById('fSId').value||'').trim();
+        const nia = (document.getElementById('fSNia').value||'').trim();
+        const nama= (document.getElementById('fSNama').value||'').trim();
+        const unit=(document.getElementById('fSUnit').value||'').trim();
+        const status=(document.getElementById('fSStatus').value||'AKTIF').trim();
+        const pin = (document.getElementById('fSPin').value||'').trim();
+
+        const res = await call('anggota_upsert', { id, nia, nama, unit, status, pin });
+        if(!res.ok) throw new Error(res.message||'Gagal simpan anggota');
+        toast('Anggota tersimpan');
+        closeModal();
+        await loadAnggota(STATE.anggota.page);
+        await initPdfPanel_();
+      }catch(e){
+        toast(String(e.message||e), false);
+      }
+    }
+
+    async function delAnggota(id){
+      if(!confirm('Hapus anggota & seluruh transaksinya?')) return;
+      try{
+        const res = await call('anggota_delete', { id });
+        if(!res.ok) throw new Error(res.message||'Gagal hapus anggota');
+        toast('Anggota dihapus');
+        await loadAnggota(1);
+        await loadTrx(1);
+        await initPdfPanel_();
+      }catch(e){
+        toast(String(e.message||e), false);
+      }
+    }
+
+    /* =========================
+       TRANSAKSI
+    ========================= */
+    async function loadTrx(page){
+      try{
+        const isStaff = (STATE.me.role === 'ADMIN' || STATE.me.role === 'PENGURUS');
+
+        const payload = { page, pageSize: PAGE_SIZE };
+        if(isStaff){
+          payload.q = (document.getElementById('tQ')?.value||'').trim();
+          payload.unit = (document.getElementById('tUnit')?.value||'').trim();
+        }
+        payload.type = (document.getElementById('tType')?.value||'').trim();
+        payload.from = (document.getElementById('tFrom')?.value||'').trim();
+        payload.to   = (document.getElementById('tTo')?.value||'').trim();
+
+        const res = await call('trx_list', payload);
+        if(!res.ok) throw new Error(res.message||'Gagal load transaksi');
+
+        STATE.trx.page = res.page;
+        STATE.trx.pages = res.pages;
+        STATE.trx.saldoMap = res.saldoMap || {};
+
+        // unit filter (staff)
+        if(isStaff){
+          const sel = document.getElementById('tUnit');
+          if(sel){
+            const cur = sel.value;
+            sel.innerHTML = `<option value="">Semua Unit</option>` + (res.classes||[])
+              .map(k=>`<option value="${esc(k)}">${esc(k)}</option>`).join('');
+            sel.value = cur;
+          }
+        }
+
+        const body = document.getElementById('tBody');
+        body.innerHTML = (res.items||[]).map(t=>`
+          <tr>
+            <td>${esc(t.id||'')}</td>
+            <td>${esc(t.tglUi||'')}</td>
+            <td>${esc(t.nia||'')}</td>
+            <td>${esc(t.nama||'')}</td>
+            <td>${esc(t.unit||'')}</td>
+            <td><span class="badge ${t.type==='IN'?'in':'out'}">${esc(t.type||'')}</span></td>
+            <td class="right">${fmtRp(t.amount||0)}</td>
+            <td>${esc(t.note||'')}</td>
+            <td class="right">
+              ${isStaff ? `
+                <button onclick="openTrxForm('${esc(t.id)}')">✏️ Edit</button>
+                <button class="danger" onclick="delTrx('${esc(t.id)}')">🗑 Hapus</button>
+              ` : ``}
+            </td>
+          </tr>
+        `).join('') || `<tr><td colspan="9" class="muted">Tidak ada data.</td></tr>`;
+
+        document.getElementById('tInfo').textContent =
+          `Total: ${fmtInt(res.total)} • Page ${res.page}/${res.pages}`;
+
+        document.getElementById('tPage').textContent = `Page ${res.page}/${res.pages}`;
+
+        renderSaldoTable_(res);
+      }catch(e){
+        toast(String(e.message||e), false);
+      }
+    }
+    function tPrev(){ if(STATE.trx.page>1) loadTrx(STATE.trx.page-1); }
+    function tNext(){ if(STATE.trx.page<STATE.trx.pages) loadTrx(STATE.trx.page+1); }
+
+    function renderSaldoTable_(res){
+      const body = document.getElementById('saldoBody');
+      const isStaff = (STATE.me.role === 'ADMIN' || STATE.me.role === 'PENGURUS');
+
+      if(isStaff){
+        // tampilkan top saldo (ringkas)
+        const rows = Object.entries(res.saldoMap||{})
+          .map(([sid, saldo])=>{
+            const t = (res.items||[]).find(x=>String(x.anggotaId||'')===sid);
+            return { sid, saldo, nia:t?.nia||'', nama:t?.nama||'', unit:t?.unit||'' };
+          })
+          .sort((a,b)=>b.saldo-a.saldo)
+          .slice(0,200);
+
+        body.innerHTML = rows.map(x=>`
+          <tr>
+            <td>${esc(x.nia)}</td>
+            <td>${esc(x.nama)}</td>
+            <td>${esc(x.unit)}</td>
+            <td class="right">${fmtRp(x.saldo||0)}</td>
+          </tr>
+        `).join('') || `<tr><td colspan="4" class="muted">Belum ada saldo.</td></tr>`;
+      }else{
+        // anggota: saldo khusus dirinya (1 baris)
+        const saldo = res.saldo || 0;
+        body.innerHTML = `
+          <tr>
+            <td>${esc(STATE.me.nia||'')}</td>
+            <td>${esc(STATE.me.name||'')}</td>
+            <td>${esc(STATE.me.unit||'')}</td>
+            <td class="right">${fmtRp(saldo)}</td>
+          </tr>
+        `;
+      }
+    }
+
+    function openTrxForm(id){
+      const html = `
+        <div class="grid cols2">
+          <input id="fTId" placeholder="ID (kosongkan untuk auto)" value="${id?esc(id):''}">
+          <input id="fTTgl" placeholder="Tanggal dd-mm-yyyy">
+          <select id="fTAnggota" style="grid-column:1/3"></select>
+          <select id="fTType">
+            <option value="IN">IN (Setor)</option>
+            <option value="OUT">OUT (Tarik)</option>
+          </select>
+          <input id="fTAmount" type="text" inputmode="numeric" placeholder="Nominal">
+          <input id="fTNote" placeholder="Catatan (opsional)" style="grid-column:1/3">
+        </div>
+        <div class="row" style="justify-content:flex-end;margin-top:12px">
+          <button class="primary" onclick="saveTrx()">Simpan</button>
+        </div>
+      `;
+      openModal(id?'Edit Transaksi':'Input Transaksi', html);
+      bindNumberSeparator(document.getElementById('fTAmount'));
+
+      fillAnggotaOptions_().then(async ()=>{
+        if(id){
+          await prefillTrxById_(id);
+          bindNumberSeparator(document.getElementById('fTAmount'));
+        }
+      });
+    }
+
+    async function fillAnggotaOptions_(){
+      // ambil dari list anggota (staff) atau dari token (anggota)
+      const sel = document.getElementById('fTAnggota');
+      if(!sel) return;
+
+      if(STATE.me.role === 'ANGGOTA'){
+        sel.innerHTML = `<option value="${esc(STATE.me.anggotaId)}">${esc(STATE.me.nia)} - ${esc(STATE.me.name)}</option>`;
+        return;
+      }
+
+      // staff: load anggota page 1 besar
+      const res = await call('anggota_list', { page:1, pageSize:2000 });
+      if(!res.ok) throw new Error(res.message||'Gagal load anggota');
+      STATE.anggotaListForSelect = res.items || [];
+      sel.innerHTML = STATE.anggotaListForSelect.map(s=>
+        `<option value="${esc(s.id)}">${esc(s.nia)} - ${esc(s.nama)} (${esc(s.unit)})</option>`
+      ).join('');
+    }
+
+    async function prefillTrxById_(id){
+      // ambil dari tabel yang tampil (cukup untuk edit)
+      const row = Array.from(document.querySelectorAll('#tBody tr'))
+        .find(tr => tr.children[0]?.textContent === id);
+      if(!row) return;
+
+      document.getElementById('fTTgl').value = row.children[1].textContent;
+      document.getElementById('fTType').value = row.children[5].innerText.trim();
+      document.getElementById('fTNote').value = row.children[7].textContent;
+
+      const amt = onlyDigits(row.children[6].textContent);
+      document.getElementById('fTAmount').value = amt;
+      bindNumberSeparator(document.getElementById('fTAmount'));
+
+      // pilih anggota
+      const sel = document.getElementById('fTAnggota');
+      const nia = row.children[2].textContent;
+      const opt = Array.from(sel.options).find(o=>o.textContent.startsWith(nia));
+      if(opt) sel.value = opt.value;
+    }
+
+    async function saveTrx(){
+      try{
+        const id = (document.getElementById('fTId').value||'').trim();
+        const tgl = (document.getElementById('fTTgl').value||'').trim();
+        const anggotaId = (document.getElementById('fTAnggota').value||'').trim();
+        const type = (document.getElementById('fTType').value||'').trim();
+        const amount = getNumberRaw(document.getElementById('fTAmount'));
+        const note = (document.getElementById('fTNote').value||'').trim();
+
+        const res = await call('trx_upsert', { id, tgl, anggotaId, type, amount, note });
+        if(!res.ok) throw new Error(res.message||'Gagal simpan transaksi');
+
+        toast('Transaksi tersimpan');
+        closeModal();
+        await loadTrx(STATE.trx.page);
+        await loadDashboard();
+      }catch(e){
+        toast(String(e.message||e), false);
+      }
+    }
+
+    async function delTrx(id){
+      if(!confirm('Hapus transaksi ini?')) return;
+      try{
+        const res = await call('trx_delete', { id });
+        if(!res.ok) throw new Error(res.message||'Gagal hapus transaksi');
+        toast('Transaksi dihapus');
+        await loadTrx(STATE.trx.page);
+        await loadDashboard();
+      }catch(e){
+        toast(String(e.message||e), false);
+      }
+    }
+    /* =========================
+       PDF
+    ========================= */
+    async function initPdfPanel_(){
+      const sel = document.getElementById('pdfAnggota');
+      const out = document.getElementById('pdfOut');
+      if(out) out.textContent = '';
+
+      if(STATE.me.role === 'ANGGOTA'){
+        // anggota: lock anggota
+        sel.innerHTML = `<option value="${esc(STATE.me.anggotaId)}">${esc(STATE.me.nia)} - ${esc(STATE.me.name)} (${esc(STATE.me.unit||'')})</option>`;
+        sel.disabled = true;
+      }else{
+        sel.disabled = false;
+        // staff: load anggota untuk pilihan pdf
+        const res = await call('anggota_list', { page:1, pageSize:3000 });
+        if(res.ok){
+          sel.innerHTML = `<option value="">Pilih Anggota</option>` + (res.items||[]).map(s=>
+            `<option value="${esc(s.id)}">${esc(s.nia)} - ${esc(s.nama)} (${esc(s.unit)})</option>`
+          ).join('');
+        }else{
+          sel.innerHTML = `<option value="">(Gagal load anggota)</option>`;
+        }
+      }
+
+      // default month = bulan ini
+      const d = new Date();
+      const mm = String(d.getMonth()+1).padStart(2,'0');
+      const yyyy = String(d.getFullYear());
+      const inp = document.getElementById('pdfMonth');
+      if(inp && !inp.value) inp.value = `${mm}-${yyyy}`;
+    }
+
+    async function genPdf(){
+      try{
+        const anggotaId = (document.getElementById('pdfAnggota').value||'').trim();
+        const month = (document.getElementById('pdfMonth').value||'').trim();
+
+        if(STATE.me.role !== 'ANGGOTA' && !anggotaId){
+          toast('Pilih anggota dulu', false);
+          return;
+        }
+        if(!/^\d{2}-\d{4}$/.test(month)){
+          toast('Format bulan harus mm-yyyy', false);
+          return;
+        }
+
+        const res = await call('pdf_month', { anggotaId, month });
+        if(!res.ok) throw new Error(res.message||'Gagal buat PDF (b64)');
+
+        // ✅ decode base64 -> Blob -> download
+        const byteChars = atob(res.b64 || '');
+        const byteNums = new Array(byteChars.length);
+        for(let i=0;i<byteChars.length;i++) byteNums[i] = byteChars.charCodeAt(i);
+        const blob = new Blob([new Uint8Array(byteNums)], { type: res.mimeType || 'application/pdf' });
+
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = res.fileName || `Tabungan-${month}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+
+        const out = document.getElementById('pdfOut');
+        out.innerHTML = `✅ PDF berhasil dibuat dan di-download: <b>${esc(a.download)}</b>`;
+        toast('PDF di-download');
+      }catch(e){
+        toast(String(e.message||e), false);
+      }
+    }
+
+
+    /* =========================
+       Boot
+    ========================= */
+    (function boot(){
+      // default mode staff
+      setLoginMode('STAFF');
+
+      // attempt restore token (optional)
+      try{
+        const t = localStorage.getItem('ANSOR_ANDULANG_TOKEN') || '';
+        if(t){
+          // validate token
+          call('auth_me', { token: t }).then(res=>{
+            if(res.ok){
+              STATE.token = t;
+              STATE.me = res.me;
+              enterApp_();
+              toast('Session dipulihkan');
+            }else{
+              localStorage.removeItem('ANSOR_ANDULANG_TOKEN');
+            }
+          }).catch(()=>{});
+        }
+      }catch(e){}
+
+      // persist token on changes
+      const oldLoginStaff = loginStaff;
+      loginStaff = async function(){
+        await oldLoginStaff();
+        if(STATE.token) try{ localStorage.setItem('ANSOR_ANDULANG_TOKEN', STATE.token); }catch(e){}
+      }
+      const oldLoginAnggota = loginAnggota;
+      loginAnggota = async function(){
+        await oldLoginAnggota();
+        if(STATE.token) try{ localStorage.setItem('ANSOR_ANDULANG_TOKEN', STATE.token); }catch(e){}
+      }
+      const oldLogout = logout;
+      logout = async function(){
+        try{ localStorage.removeItem('ANSOR_ANDULANG_TOKEN'); }catch(e){}
+        await oldLogout();
+      }
+    })();
+
+    // ===== USERS STATE =====
+    STATE.users = { page:1, pages:1 };
+
+    async function loadUsers(page){
+      try{
+        if(STATE.me.role !== 'ADMIN'){
+          toast('Hanya ADMIN yang bisa membuka manajemen user', false);
+          return;
+        }
+
+        const q = (document.getElementById('uQ')?.value||'').trim();
+        const role = (document.getElementById('uRole')?.value||'').trim();
+        const status = (document.getElementById('uStatus')?.value||'').trim();
+
+        const res = await call('users_list', { page, pageSize: PAGE_SIZE, q, role, status });
+        if(!res.ok) throw new Error(res.message||'Gagal load users');
+
+        STATE.users.page = res.page;
+        STATE.users.pages = res.pages;
+
+        const body = document.getElementById('uBody');
+        body.innerHTML = (res.items||[]).map(u=>`
+          <tr>
+            <td><b>${esc(u.username||'')}</b></td>
+            <td>${esc(u.name||'')}</td>
+            <td><span class="badge">${esc(u.role||'')}</span></td>
+            <td><span class="badge">${esc(u.status||'')}</span></td>
+            <td>${esc(u.updatedAtUi||'')}</td>
+            <td class="right">
+              <button onclick="openUserForm('${esc(u.username)}')">✏️ Edit</button>
+              <button onclick="resetUserPass('${esc(u.username)}')">🔁 Reset</button>
+              <button class="danger" onclick="delUser('${esc(u.username)}')">🗑 Hapus</button>
+            </td>
+          </tr>
+        `).join('') || `<tr><td colspan="6" class="muted">Tidak ada data.</td></tr>`;
+
+        document.getElementById('uInfo').textContent =
+          `Total: ${fmtInt(res.total)} • Page ${res.page}/${res.pages}`;
+        document.getElementById('uPage').textContent = `Page ${res.page}/${res.pages}`;
+      }catch(e){
+        toast(String(e.message||e), false);
+      }
+    }
+    function uPrev(){ if(STATE.users.page>1) loadUsers(STATE.users.page-1); }
+    function uNext(){ if(STATE.users.page<STATE.users.pages) loadUsers(STATE.users.page+1); }
+
+    function openUserForm(username){
+      if(STATE.me.role !== 'ADMIN'){
+        toast('Hanya ADMIN', false);
+        return;
+      }
+      const isEdit = !!username;
+
+      const html = `
+        <div class="grid cols2">
+          <input id="fUUsername" placeholder="Username" value="${isEdit?esc(username):''}" ${isEdit?'disabled':''}>
+          <input id="fUName" placeholder="Nama">
+          <select id="fURole">
+            <option value="PENGURUS">PENGURUS</option>
+            <option value="ADMIN">ADMIN</option>
+          </select>
+          <select id="fUStatus">
+            <option value="AKTIF">AKTIF</option>
+            <option value="NONAKTIF">NONAKTIF</option>
+          </select>
+          <input id="fUPass" placeholder="${isEdit?'Password baru (kosong = tidak berubah)':'Password (wajib)'}" type="password" style="grid-column:1/3">
+        </div>
+        <div class="muted" style="font-size:12px;margin-top:10px">
+          Password akan di-hash otomatis di server.
+        </div>
+        <div class="row" style="justify-content:flex-end;margin-top:12px">
+          <button class="primary" onclick="saveUser()">Simpan</button>
+        </div>
+      `;
+      openModal(isEdit?'Edit User':'Tambah User', html);
+
+      if(isEdit){
+        // prefill dari tabel yang tampil
+        const row = Array.from(document.querySelectorAll('#uBody tr'))
+          .find(tr => tr.children[0]?.innerText?.trim() === username);
+        if(row){
+          document.getElementById('fUName').value = row.children[1].innerText.trim();
+          document.getElementById('fURole').value = row.children[2].innerText.trim();
+          document.getElementById('fUStatus').value = row.children[3].innerText.trim();
+        }
+      }else{
+        document.getElementById('fURole').value = 'PENGURUS';
+        document.getElementById('fUStatus').value = 'AKTIF';
+      }
+    }
+
+    async function saveUser(){
+      try{
+        const username = (document.getElementById('fUUsername').value||'').trim();
+        const name = (document.getElementById('fUName').value||'').trim();
+        const role = (document.getElementById('fURole').value||'').trim();
+        const status = (document.getElementById('fUStatus').value||'').trim();
+        const password = (document.getElementById('fUPass').value||'').trim();
+
+        const res = await call('users_upsert', { username, name, role, status, password });
+        if(!res.ok) throw new Error(res.message||'Gagal simpan user');
+
+        toast('User tersimpan');
+        closeModal();
+        await loadUsers(STATE.users.page);
+      }catch(e){
+        toast(String(e.message||e), false);
+      }
+    }
+
+    async function delUser(username){
+      if(STATE.me.role !== 'ADMIN'){
+        toast('Hanya ADMIN', false); return;
+      }
+      if(username === (STATE.me.username||'')){
+        toast('Tidak bisa menghapus akun yang sedang dipakai login', false);
+        return;
+      }
+      if(!confirm(`Hapus user: ${username}?`)) return;
+      try{
+        const res = await call('users_delete', { username });
+        if(!res.ok) throw new Error(res.message||'Gagal hapus user');
+        toast('User dihapus');
+        await loadUsers(1);
+      }catch(e){
+        toast(String(e.message||e), false);
+      }
+    }
+
+    async function resetUserPass(username){
+  if(STATE.me.role !== 'ADMIN'){
+    toast('Hanya ADMIN', false); return;
+  }
+  if(!confirm(`Reset password untuk user: ${username}?\nPassword baru akan digenerate otomatis.`)) return;
+
+  try{
+    const res = await call('users_reset_password', { username });
+    if(!res.ok) throw new Error(res.message||'Gagal reset password');
+
+    const pass = String(res.password||'');
+    if(!pass) throw new Error('Password baru tidak diterima dari server');
+
+    // copy to clipboard
+    let copied = false;
+    try{
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        await navigator.clipboard.writeText(pass);
+        copied = true;
+      }
+    }catch(e){}
+
+    const msg = copied
+      ? `✅ Password baru untuk ${username} sudah di-copy:\n${pass}`
+      : `✅ Password baru untuk ${username}:\n${pass}\n\n(Clipboard tidak tersedia, silakan copy manual)`;
+
+    // tampilkan via modal agar jelas
+    openModal('Reset Password', `
+      <div class="muted" style="margin-bottom:10px">
+        Password baru berhasil dibuat. Simpan dan kirim ke user terkait.
+      </div>
+      <div class="card" style="padding:12px;border-radius:14px">
+        <div style="font-size:12px" class="muted">Username</div>
+        <div style="font-weight:800;margin-bottom:10px">${esc(username)}</div>
+        <div style="font-size:12px" class="muted">Password Baru</div>
+        <div style="font-weight:900;font-size:18px;letter-spacing:.5px">${esc(pass)}</div>
+      </div>
+      <div class="row" style="justify-content:flex-end;margin-top:12px;gap:8px">
+        <button onclick="tryCopy('${esc(pass)}')">📋 Copy</button>
+        <button class="primary" onclick="closeModal()">Tutup</button>
+      </div>
+      <div class="muted" style="font-size:12px;margin-top:8px">
+        ${copied ? 'Sudah otomatis di-copy.' : 'Klik Copy untuk menyalin.'}
+      </div>
+    `);
+
+    toast('Password di-reset');
+      await loadUsers(STATE.users.page);
+        }catch(e){
+        toast(String(e.message||e), false);
+      }
+    }
+
+    async function tryCopy(text){
+      try{
+        if(navigator.clipboard && navigator.clipboard.writeText){
+          await navigator.clipboard.writeText(String(text||''));
+          toast('Tersalin ke clipboard');
+        }else{
+          prompt('Copy manual:', String(text||''));
+        }
+      }catch(e){
+        prompt('Copy manual:', String(text||''));
+      }
+    }
+
+    // ===== FORCE CHANGE PASSWORD (UI) =====
+    function isStaff_(){
+      return (STATE.me && (STATE.me.role === 'ADMIN' || STATE.me.role === 'PENGURUS'));
+    }
+    function mustChangePass_(){
+      return !!(isStaff_() && STATE.me && STATE.me.mustchangepass);
+    }
+
+    function setToken_(t){
+      STATE.token = String(t||'');
+      try{
+        if(STATE.token) localStorage.setItem('ANSOR_ANDULANG_TOKEN', STATE.token);
+        else localStorage.removeItem('ANSOR_ANDULANG_TOKEN');
+      }catch(e){}
+    }
+
+    function openChangePassModal_(){
+      openModal('🔒 Wajib Ganti Password', `
+        <div class="muted" style="margin-bottom:10px">
+          Demi keamanan, akun ini <b>wajib mengganti password</b> sebelum bisa mengakses fitur aplikasi.
+        </div>
+
+        <div class="grid cols2">
+          <input id="cpOld" type="password" placeholder="Password lama">
+          <input id="cpNew" type="password" placeholder="Password baru (min 6 karakter)">
+          <input id="cpConfirm" type="password" placeholder="Konfirmasi password baru" style="grid-column:1/3">
+        </div>
+
+        <div class="row" style="justify-content:flex-end;margin-top:12px;gap:8px">
+          <button onclick="logout()">🚪 Logout</button>
+          <button class="primary" onclick="submitChangePass_()">Simpan Password Baru</button>
+        </div>
+
+        <div class="hint">
+          Tips: gunakan kombinasi huruf besar, kecil, angka, dan simbol.
+        </div>
+      `);
+
+      // optional: fokus
+      setTimeout(()=>{ try{ document.getElementById('cpOld')?.focus(); }catch(e){} }, 50);
+    }
+
+    async function submitChangePass_(){
+      try{
+        const oldPassword = (document.getElementById('cpOld')?.value||'').trim();
+        const newPassword = (document.getElementById('cpNew')?.value||'').trim();
+        const confirmPassword = (document.getElementById('cpConfirm')?.value||'').trim();
+
+        if(!oldPassword || !newPassword) { toast('Password lama & baru wajib diisi', false); return; }
+        if(newPassword.length < 6) { toast('Password baru minimal 6 karakter', false); return; }
+        if(newPassword !== confirmPassword) { toast('Konfirmasi password tidak sama', false); return; }
+        if(oldPassword === newPassword) { toast('Password baru tidak boleh sama dengan password lama', false); return; }
+
+        const res = await call('auth_change_password', { oldPassword, newPassword, confirmPassword });
+        if(!res.ok) throw new Error(res.message || 'Gagal ganti password');
+
+        // ✅ server mengembalikan token baru + me baru
+        setToken_(res.token || '');
+        STATE.me = res.me || STATE.me;
+
+        closeModal();
+        toast('Password berhasil diganti ✅');
+
+        // ✅ sekarang baru boleh load fitur
+        await refreshAll();
+      }catch(e){
+        toast(String(e.message||e), false);
+      }
+    }
+
+    /* ===============================
+    SUPER MOBILE JS (Bottom Sheet)
+    Drop-in patch - KSL
+    =============================== */
+
+  function isMobile_(){
+    return window.matchMedia && window.matchMedia('(max-width: 720px)').matches;
+  }
+
+  function openSheetMenu_(){
+    try{
+      buildSheetMenu_();
+      document.getElementById('sheetOverlay')?.classList.add('show');
+    }catch(e){}
+  }
+  function closeSheetMenu_(){
+    document.getElementById('sheetOverlay')?.classList.remove('show');
+  }
+  function sheetOverlayClick_(ev){
+    // klik area gelap -> tutup
+    closeSheetMenu_();
+  }
+
+  function setActiveTopTab_(tab){
+    // update state view (reuse logic kamu)
+    const map = ['dash','anggota','trx','pdf','users'];
+    map.forEach(t=>{
+      const el = document.getElementById('tab-'+t);
+      if(el) el.classList.toggle('hide', t!==tab);
+    });
+
+    // sync desktop tab highlight (kalau sedang desktop)
+    document.querySelectorAll('#topTabs .tab[data-tab]').forEach(x=>{
+      x.classList.toggle('active', x.dataset.tab === tab);
+    });
+
+    // trigger load sesuai tab
+    if(tab==='dash') loadDashboard();
+    if(tab==='anggota') loadAnggota(STATE.anggota.page || 1);
+    if(tab==='trx') loadTrx(STATE.trx.page || 1);
+    if(tab==='pdf') initPdfPanel_();
+    if(tab==='users') loadUsers(1);
+  }
+
+  function buildSheetMenu_(){
+    const grid = document.getElementById('sheetGrid');
+    if(!grid) return;
+
+    const me = STATE.me || {};
+    const role = String(me.role||'').toUpperCase();
+    const isStaff = (role === 'ADMIN' || role === 'PENGURUS');
+    const isAdmin = (role === 'ADMIN');
+
+    // kalau wajib ganti password, batasi menu
+    const force = mustChangePass_ && mustChangePass_();
+
+    const items = [];
+
+    // menu utama
+    items.push({ key:'dash', title:'📊 Dashboard', desc:'Ringkasan & angka penting', show:true });
+    items.push({ key:'anggota', title:'👨‍🎓 Anggota', desc:'Master anggota & PIN', show: isStaff && !force });
+    items.push({ key:'trx', title:'💰 Transaksi', desc:'Riwayat & input', show: !force }); // anggota boleh view
+    items.push({ key:'pdf', title:'📄 PDF', desc:'Export laporan bulanan', show: !force });
+    items.push({ key:'users', title:'👤 Users', desc:'Admin: kelola akun', show: isAdmin && !force });
+
+    // aksi
+    items.push({ key:'action_refresh', title:'🔄 Refresh', desc:'Muat ulang data', show:true, action: ()=>refreshAll() });
+    items.push({ key:'action_cache', title:'🧹 Clear Cache', desc:'Bersihkan cache UI', show: !force, action: ()=>clearCache() });
+
+    // staff-only: input transaksi cepat
+    items.push({ key:'action_addtrx', title:'➕ Input Transaksi', desc:'Admin: tambah transaksi', show: isStaff && !force, action: ()=>openTrxForm() });
+    items.push({ key:'action_addanggota', title:'➕ Tambah Anggota', desc:'Admin: tambah anggota', show: isStaff && !force, action: ()=>openAnggotaForm() });
+
+    // password
+    items.push({ key:'action_pass', title:'🔒 Ganti Password', desc:'Ubah password akun', show: isStaff, action: ()=>openChangePassModal_() });
+
+    // logout
+    items.push({ key:'action_logout', title:'🚪 Logout', desc:'Keluar dari aplikasi', show:true, action: ()=>logout() });
+
+    const activeTab = (document.querySelector('#topTabs .tab.active')?.dataset?.tab) || 'dash';
+
+    grid.innerHTML = items
+      .filter(x=>x.show)
+      .map(x=>{
+        const active = (!x.action && x.key===activeTab) ? 'active' : '';
+        return `
+          <button class="sheetBtn ${active}" data-key="${esc(x.key)}">
+            <b>${esc(x.title)}</b>
+            <span>${esc(x.desc||'')}</span>
+          </button>
+        `;
+      }).join('');
+
+    // bind click
+    grid.querySelectorAll('button.sheetBtn').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const key = btn.getAttribute('data-key') || '';
+        const item = items.find(x=>x.key===key);
+        closeSheetMenu_();
+
+        if(item && typeof item.action === 'function'){
+          item.action();
+          return;
+        }
+        // navigate
+        if(key==='dash' || key==='anggota' || key==='trx' || key==='pdf' || key==='users'){
+          setActiveTopTab_(key);
+        }
+      });
+    });
+  }
+
+  function syncMobileBar_(){
+    const tabs = document.getElementById('topTabs');
+    const mb = document.getElementById('mobileBar');
+
+    // hanya tampil saat sudah login (tabs sudah display:flex biasanya)
+    const inApp = (document.getElementById('viewApp') && !document.getElementById('viewApp').classList.contains('hide'));
+
+    if(!inApp){
+      if(mb) mb.style.display = 'none';
+      return;
+    }
+
+    if(isMobile_()){
+      if(mb) mb.style.display = 'flex';
+      // topTabs tetap ada utk desktop, tapi disembunyikan via CSS onlyDesktop
+      if(tabs) tabs.style.display = 'flex'; // biarkan, CSS yang sembunyikan
+    }else{
+      if(mb) mb.style.display = 'none';
+    }
+  }
+
+  // hook resize
+  window.addEventListener('resize', ()=>syncMobileBar_());
+
+  // hook enterApp_ agar mobile bar aktif setelah login
+  (function(){
+    const _enter = enterApp_;
+    enterApp_ = async function(){
+      await _enter();
+      syncMobileBar_();
+      // default: kalau mobile, buka dashboard dulu biar jelas
+      if(isMobile_()) setActiveTopTab_('dash');
+    };
+  })();
+
+  function exportAnggota(){
+    showLoader();
+
+    const payload = {
+      q: document.getElementById('sQ').value,
+      unit: document.getElementById('sUnit').value,
+      status: document.getElementById('sStatus').value,
+      pageSize: 10000
+    };
+
+    call('anggota_list', payload)
+      .then(res=>{
+        if(!res.ok) throw new Error(res.message);
+
+        const rows = (res.items || []).map(x => ({
+          ID: x.id,
+          NIA: x.nia,
+          NAMA: x.nama,
+          UNIT: x.unit,
+          STATUS: x.status,
+          PIN: x.pin
+        }));
+
+        const ws = XLSX.utils.json_to_sheet(rows);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "ANGGOTA");
+
+        XLSX.writeFile(wb, "data_anggota.xlsx");
+      })
+      .catch(err=>{
+        toast(err.message || 'Gagal export');
+      })
+      .finally(()=>{
+        hideLoader();
+      });
+  }
+
+  function downloadTemplateAnggota(){
+    showLoader();
+
+    try{
+      const rows = [
+        { NIA:'2026001', NAMA:'NAMA ANGGOTA', UNIT:'1A' }
+      ];
+
+      const ws = XLSX.utils.json_to_sheet(rows);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "TEMPLATE");
+
+      XLSX.writeFile(wb, "template_anggota.xlsx");
+    }catch(e){
+      toast('Gagal generate template');
+    }finally{
+      hideLoader();
+    }
+  }
+
+  function triggerImportAnggota(){
+    document.getElementById('fileImportAnggota').click();
+  }
+
+  function handleImportAnggota(el){
+    const file = el.files[0];
+    if(!file) return;
+
+    showLoader();
+
+    const reader = new FileReader();
+
+    reader.onload = function(e){
+      const data = new Uint8Array(e.target.result);
+      const wb = XLSX.read(data, { type: 'array' });
+
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      const json = XLSX.utils.sheet_to_json(sheet);
+
+      call('anggota_import', { rows: json })
+        .then(()=>{
+          toast('Import berhasil 🔥');
+          loadAnggota(1);
+        })
+        .catch(err=>{
+          toast(err.message || 'Gagal import');
+        })
+        .finally(()=>{
+          hideLoader();
+        });
+    };
+
+    reader.readAsArrayBuffer(file);
+  }
+
+  function applyPhoneClass_(){
+    try{
+      // pakai ukuran screen, bukan innerWidth (innerWidth bisa "dibesar-besarkan" saat Desktop site)
+      const sw = Math.min(window.screen.width || 9999, window.screen.height || 9999);
+      const isAndroid = /Android/i.test(navigator.userAgent || '');
+      const isPhone = isAndroid && sw <= 820; // 820 aman untuk hp besar
+
+      document.body.classList.toggle('isPhone', !!isPhone);
+    }catch(e){}
+  }
+
+  function showLoader(){
+    const el = document.getElementById('globalLoader');
+    if(el) el.style.display = 'flex';
+  }
+
+  function hideLoader(){
+    const el = document.getElementById('globalLoader');
+    if(el) el.style.display = 'none';
+  }
+
+  function toggleTheme(){
+    const body = document.body;
+    const isLight = body.classList.toggle('light');
+
+    localStorage.setItem('theme', isLight ? 'light' : 'dark');
+
+    updateThemeIcon();
+  }
+
+  function updateThemeIcon(){
+    const isLight = document.body.classList.contains('light');
+
+    const icon = isLight ? '☀️' : '🌙';
+
+    const btn1 = document.getElementById('btnTheme');
+    const btn2 = document.getElementById('btnThemeMobile');
+
+    if(btn1) btn1.innerText = icon;
+    if(btn2) btn2.innerText = icon;
+  }
+
+  // auto load
+  (function(){
+    const theme = localStorage.getItem('theme');
+    if(theme === 'light'){
+      document.body.classList.add('light');
+    }
+    updateThemeIcon();
+  })();
+
+  window.addEventListener('resize', applyPhoneClass_);
+  window.addEventListener('orientationchange', applyPhoneClass_);
+  setTimeout(applyPhoneClass_, 0);
+
+
+
+
+
+
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', function(){
+      navigator.serviceWorker.register('service-worker.js').catch(function(err){
+        console.warn('Service worker gagal daftar:', err);
+      });
+    });
+  }
+  </script>
+</body>
+</html>
