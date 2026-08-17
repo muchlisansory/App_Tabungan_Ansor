@@ -1,7 +1,12 @@
-// Service Worker sederhana — hanya meng-cache "app shell" (tampilan),
-// BUKAN data transaksi/saldo (supaya data selalu terbaru dari server).
+// Service Worker — meng-cache "app shell" (tampilan) untuk mempercepat buka
+// aplikasi & tetap bisa dibuka saat offline, BUKAN untuk data transaksi/saldo
+// (supaya data selalu real-time dari server).
+//
+// Strategi: NETWORK-FIRST untuk index.html — setiap dibuka, coba ambil versi
+// TERBARU dulu dari server; fallback ke versi tersimpan hanya kalau HP sedang
+// offline. Jadi update otomatis kepakai tanpa anggota perlu hapus cache manual.
 
-const CACHE_NAME = 'tabungan-ansor-shell-v1';
+const CACHE_NAME = 'tabungan-ansor-shell-v2';
 const SHELL_FILES = [
   './',
   './index.html',
@@ -34,26 +39,37 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   const req = event.request;
-
-  // Hanya tangani request GET untuk file shell milik kita sendiri.
-  // Request ke Apps Script (POST /exec, data transaksi) dibiarkan lewat
-  // langsung ke jaringan, tidak di-cache, supaya data selalu real-time.
   const url = new URL(req.url);
   const isSameOrigin = url.origin === self.location.origin;
   const isShellFile = SHELL_FILES.some((f) => url.pathname.endsWith(f.replace('./', '')));
 
-  if (req.method === 'GET' && isSameOrigin && isShellFile) {
-    event.respondWith(
-      caches.match(req).then((cached) => {
-        const network = fetch(req)
-          .then((res) => {
-            caches.open(CACHE_NAME).then((cache) => cache.put(req, res.clone()));
-            return res;
-          })
-          .catch(() => cached);
-        return cached || network;
-      })
-    );
+  if (req.method !== 'GET' || !isSameOrigin || !isShellFile) {
+    return;
   }
-  // selain itu: biarkan browser menangani seperti biasa (network langsung)
+
+  const isHtml = url.pathname.endsWith('index.html') || url.pathname === '/' || url.pathname.endsWith('/');
+
+  if (isHtml) {
+    event.respondWith(
+      fetch(req, { cache: 'no-store' })
+        .then((res) => {
+          caches.open(CACHE_NAME).then((cache) => cache.put(req, res.clone()));
+          return res;
+        })
+        .catch(() => caches.match(req))
+    );
+    return;
+  }
+
+  event.respondWith(
+    caches.match(req).then((cached) => {
+      const network = fetch(req)
+        .then((res) => {
+          caches.open(CACHE_NAME).then((cache) => cache.put(req, res.clone()));
+          return res;
+        })
+        .catch(() => cached);
+      return cached || network;
+    })
+  );
 });
