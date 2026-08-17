@@ -303,6 +303,35 @@
     left:12px; right:12px; bottom:12px; min-width: unset;
   }
 
+  /* ===== NATIVE-APP FEEL DI HP: app bar edge-to-edge, card lebih rapi ===== */
+  body.isPhone .wrap{
+    padding: 10px !important;
+    max-width: 100% !important;
+  }
+
+  body.isPhone .topbar{
+    position: sticky;
+    top: 0;
+    margin: -10px -10px 12px -10px !important;
+    border-radius: 0 !important;
+    border-left: none !important;
+    border-right: none !important;
+    border-top: none !important;
+    padding: 14px 16px !important;
+    padding-top: calc(14px + env(safe-area-inset-top)) !important;
+  }
+
+  body.isPhone .card{
+    border-radius: 16px !important;
+    padding: 14px !important;
+  }
+
+  body.isPhone .tableWrap{
+    position: relative;
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%);
+  }
+
   .spinner{
     width:18px;
     height:18px;
@@ -1343,6 +1372,7 @@ body.light select{
         <button class="tab active" data-tab="dash">📊 Dashboard</button>
         <button class="tab" data-tab="anggota" id="tabAnggotaBtn">👨‍🎓 Anggota</button>
         <button class="tab" data-tab="trx">💰 Transaksi</button>
+        <button class="tab" data-tab="kas">🏦 Kas</button>
         <button class="tab" data-tab="pdf">📄 PDF</button>
         <button class="tab" id="tabUsersBtn" data-tab="users">👤 Users</button>
         <button class="tab" id="tabChangePassBtn" onclick="openChangePassModal_()">🔒 Ganti Password</button>
@@ -1402,6 +1432,12 @@ body.light select{
         <h2>Ringkasan</h2>
         <div class="grid cols3" id="dashRow1"></div>
         <div class="grid cols2" style="margin-top:12px" id="dashRow2"></div>
+        <div class="muted" style="margin-top:14px;font-size:12px;font-weight:800">🏦 Kas Organisasi <span class="muted" style="font-weight:400">(bisa dilihat semua anggota)</span></div>
+        <div class="grid cols3" style="margin-top:8px" id="dashRow3"></div>
+        <div class="card" id="dashHutangKasCard" style="margin-top:12px;display:none">
+          <div style="font-weight:800;font-size:13px;margin-bottom:6px">⚠️ Anggota belum lunas kas wajib mingguan</div>
+          <div id="dashHutangKasList"></div>
+        </div>
         <div class="muted" style="margin-top:10px;font-size:12px">
           Format tanggal di UI harus <b>dd-mm-yyyy</b> (contoh: 06-01-2026).
         </div>
@@ -1528,6 +1564,50 @@ body.light select{
             </thead>
             <tbody id="saldoBody"></tbody>
           </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- KAS ORGANISASI (semua role boleh lihat) -->
+    <div id="tab-kas" class="grid hide" style="margin-top:14px">
+      <div class="card">
+        <h2>🏦 Kas Organisasi</h2>
+        <div class="muted" style="font-size:12px;margin-bottom:10px" id="kasHint"></div>
+
+        <div class="grid cols3" id="kasSummary" style="margin-bottom:12px"></div>
+
+        <div class="card" id="hutangKasCard" style="margin-bottom:14px;display:none">
+          <div style="font-weight:800;font-size:13px;margin-bottom:6px">⚠️ Anggota belum lunas kas wajib mingguan</div>
+          <div class="muted" style="font-size:12px;margin-bottom:8px">Iuran wajib malam Senin — otomatis lunas berdasarkan akumulasi nominal yang dibayarkan.</div>
+          <div id="hutangKasList"></div>
+        </div>
+
+        <div class="row" id="kasFilters" style="gap:8px"></div>
+
+        <div class="tableWrap" style="margin-top:12px">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:170px">ID</th>
+                <th style="width:120px">Tanggal</th>
+                <th style="width:90px">Type</th>
+                <th class="right" style="width:140px">Nominal</th>
+                <th>Catatan</th>
+                <th style="width:120px">Oleh</th>
+                <th class="right" style="width:180px">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="kasBody"></tbody>
+          </table>
+        </div>
+
+        <div class="row" style="justify-content:space-between;margin-top:10px">
+          <div class="muted" id="kasInfo">-</div>
+          <div class="row" style="gap:8px">
+            <button onclick="kasPrev()">◀</button>
+            <div class="badge" id="kasPage">Page 1/1</div>
+            <button onclick="kasNext()">▶</button>
+          </div>
         </div>
       </div>
     </div>
@@ -1669,7 +1749,7 @@ body.light select{
   <script>
     // ⚠️ WAJIB DIISI: ganti dengan URL Web App Apps Script Anda (yang diakhiri /exec)
     // Ambil dari: Apps Script > Deploy > Manage deployments > URL Aplikasi web
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyDLy7wSkMSWhqdwND0rmaDVesLrg_j0u8A4ir02rf5y22SsSsKiSMrzYOaiaeqI6EYQg/exec';
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/GANTI_DENGAN_DEPLOYMENT_ID_ANDA/exec';
 
     const PAGE_SIZE = 50;
 
@@ -1678,6 +1758,7 @@ body.light select{
       me: null,            // {role, username/name, ...}
       anggota: { page:1, pages:1 },
       trx:   { page:1, pages:1, saldoMap:{} },
+      kas:   { page:1, pages:1 },
       anggotaListForSelect: [],
     };
 
@@ -1779,12 +1860,14 @@ body.light select{
           document.getElementById('tab-dash').classList.toggle('hide', tab!=='dash');
           document.getElementById('tab-anggota').classList.toggle('hide', tab!=='anggota');
           document.getElementById('tab-trx').classList.toggle('hide', tab!=='trx');
+          document.getElementById('tab-kas').classList.toggle('hide', tab!=='kas');
           document.getElementById('tab-pdf').classList.toggle('hide', tab!=='pdf');
           document.getElementById('tab-users').classList.toggle('hide', tab!=='users');
 
           if(tab==='dash') loadDashboard();
           if(tab==='anggota') loadAnggota(STATE.anggota.page);
           if(tab==='trx') loadTrx(STATE.trx.page);
+          if(tab==='kas'){ loadKas(STATE.kas.page); loadKasWajibStatus(); }
           if(tab==='pdf') initPdfPanel_();
           if(tab==='users') loadUsers(1);
         });
@@ -1912,6 +1995,7 @@ body.light select{
 
       renderQuickActions_();
       renderTrxFilters_();
+      renderKasFilters_();
 
       document.getElementById('saldoHint').textContent = isStaff
         ? 'Admin: saldo tabel menampilkan ringkasan.'
@@ -2029,6 +2113,7 @@ body.light select{
         const isStaff = (STATE.me.role === 'ADMIN' || STATE.me.role === 'PENGURUS');
         const row1 = document.getElementById('dashRow1');
         const row2 = document.getElementById('dashRow2');
+        const row3 = document.getElementById('dashRow3');
 
         if(isStaff){
           row1.innerHTML = `
@@ -2050,6 +2135,30 @@ body.light select{
             <div class="pill">Setoran Hari Ini <strong>${fmtRp(res.stats.inToday||0)}</strong></div>
             <div class="pill">Penarikan Hari Ini <strong>${fmtRp(res.stats.outToday||0)}</strong></div>
           `;
+        }
+
+        // 🏦 Kas Organisasi — tampil untuk SEMUA role tanpa terkecuali
+        if(row3){
+          row3.innerHTML = `
+            <div class="pill">Saldo Kas <strong>${fmtRp(res.stats.saldoKas||0)}</strong></div>
+            <div class="pill">Total Kas Masuk <strong>${fmtRp(res.stats.kasIn||0)}</strong></div>
+            <div class="pill">Total Kas Keluar <strong>${fmtRp(res.stats.kasOut||0)}</strong></div>
+          `;
+        }
+
+        STATE.kasWajibCfg = res.kasWajibCfg || STATE.kasWajibCfg;
+
+        // ⚠️ Daftar anggota belum lunas kas wajib mingguan — tampil untuk SEMUA role
+        const dashCard = document.getElementById('dashHutangKasCard');
+        const dashList = document.getElementById('dashHutangKasList');
+        if(dashCard && dashList){
+          const hutang = res.hutangKas || [];
+          if(hutang.length){
+            dashCard.style.display = '';
+            dashList.innerHTML = renderHutangKasRows_(hutang);
+          }else{
+            dashCard.style.display = 'none';
+          }
         }
       }catch(e){
         toast(String(e.message||e), false);
@@ -2307,9 +2416,10 @@ body.light select{
       });
     }
 
-    async function fillAnggotaOptions_(){
+    async function fillAnggotaOptions_(elId){
       // ambil dari list anggota (staff) atau dari token (anggota)
-      const sel = document.getElementById('fTAnggota');
+      elId = elId || 'fTAnggota';
+      const sel = document.getElementById(elId);
       if(!sel) return;
 
       if(STATE.me.role === 'ANGGOTA'){
@@ -2380,6 +2490,263 @@ body.light select{
         toast(String(e.message||e), false);
       }
     }
+
+    /* =========================
+       KAS ORGANISASI
+       (SEMUA role boleh lihat, hanya Admin/Pengurus boleh input/edit/hapus)
+    ========================= */
+    function renderKasFilters_(){
+      const wrap = document.getElementById('kasFilters');
+      const isStaff = (STATE.me.role === 'ADMIN' || STATE.me.role === 'PENGURUS');
+
+      wrap.innerHTML = `
+        <input id="kQ" placeholder="Cari Catatan / ID..." style="min-width:220px" onkeydown="if(event.key==='Enter') loadKas(1)">
+        <select id="kType" onchange="loadKas(1)">
+          <option value="">IN + OUT</option>
+          <option value="IN">IN (Masuk)</option>
+          <option value="OUT">OUT (Keluar)</option>
+        </select>
+        <input id="kFrom" placeholder="Dari dd-mm-yyyy" style="width:160px" onkeydown="if(event.key==='Enter') loadKas(1)">
+        <input id="kTo" placeholder="Sampai dd-mm-yyyy" style="width:160px" onkeydown="if(event.key==='Enter') loadKas(1)">
+        <button class="primary" onclick="loadKas(1)">Filter</button>
+        ${isStaff ? `<button class="ok" onclick="openKasForm()">+ Input Kas</button>` : ``}
+        ${isStaff ? `<button onclick="openKasWajibConfig()">⚙️ Atur Kas Wajib</button>` : ``}
+      `;
+
+      document.getElementById('kasHint').textContent = isStaff
+        ? 'Admin/Pengurus: bisa input, edit, dan hapus catatan kas.'
+        : 'Anggota: kas organisasi bisa dilihat semua anggota (view-only).';
+    }
+
+    async function loadKas(page){
+      try{
+        const isStaff = (STATE.me.role === 'ADMIN' || STATE.me.role === 'PENGURUS');
+
+        const payload = {
+          page, pageSize: PAGE_SIZE,
+          q: (document.getElementById('kQ')?.value||'').trim(),
+          type: (document.getElementById('kType')?.value||'').trim(),
+          from: (document.getElementById('kFrom')?.value||'').trim(),
+          to: (document.getElementById('kTo')?.value||'').trim(),
+        };
+
+        const res = await call('kas_list', payload);
+        if(!res.ok) throw new Error(res.message||'Gagal load kas');
+
+        STATE.kas.page = res.page;
+        STATE.kas.pages = res.pages;
+
+        document.getElementById('kasSummary').innerHTML = `
+          <div class="pill">Saldo Kas <strong>${fmtRp(res.saldoKas||0)}</strong></div>
+          <div class="pill">Total Masuk <strong>${fmtRp(res.totalIn||0)}</strong></div>
+          <div class="pill">Total Keluar <strong>${fmtRp(res.totalOut||0)}</strong></div>
+        `;
+
+        const body = document.getElementById('kasBody');
+        body.innerHTML = (res.items||[]).map(k=>`
+          <tr>
+            <td>${esc(k.id||'')}</td>
+            <td>${esc(k.tglUi||'')}</td>
+            <td><span class="badge ${k.type==='IN'?'in':'out'}">${esc(k.type||'')}</span></td>
+            <td class="right">${fmtRp(k.amount||0)}</td>
+            <td>${esc(k.note||'')}</td>
+            <td>${esc(k.byUser||'')}</td>
+            <td class="right">
+              ${isStaff ? `
+                <button onclick="openKasForm('${esc(k.id)}')">✏️ Edit</button>
+                <button class="danger" onclick="delKas('${esc(k.id)}')">🗑 Hapus</button>
+              ` : ``}
+            </td>
+          </tr>
+        `).join('') || `<tr><td colspan="7" class="muted">Tidak ada data.</td></tr>`;
+
+        document.getElementById('kasInfo').textContent =
+          `Total: ${fmtInt(res.total)} • Page ${res.page}/${res.pages}`;
+        document.getElementById('kasPage').textContent = `Page ${res.page}/${res.pages}`;
+      }catch(e){
+        toast(String(e.message||e), false);
+      }
+    }
+    function kasPrev(){ if(STATE.kas.page>1) loadKas(STATE.kas.page-1); }
+    function kasNext(){ if(STATE.kas.page<STATE.kas.pages) loadKas(STATE.kas.page+1); }
+
+    function openKasForm(id){
+      const html = `
+        <div class="grid cols2">
+          <input id="fKId" placeholder="ID (kosongkan untuk auto)" value="${id?esc(id):''}">
+          <input id="fKTgl" placeholder="Tanggal dd-mm-yyyy">
+          <select id="fKType" onchange="toggleKasAnggotaField_()">
+            <option value="IN">IN (Kas Masuk)</option>
+            <option value="OUT">OUT (Kas Keluar)</option>
+          </select>
+          <input id="fKAmount" type="text" inputmode="numeric" placeholder="Nominal">
+          <div id="fKAnggotaWrap" style="grid-column:1/3">
+            <select id="fKAnggota">
+              <option value="">- Kas umum (bukan iuran wajib anggota) -</option>
+            </select>
+            <div class="muted" style="font-size:11px;margin-top:4px">Isi kalau ini pembayaran iuran wajib mingguan seorang anggota — nominal otomatis dihitung sebagai pelunasan sejumlah pertemuan (nominal ÷ ${fmtRp(STATE.kasWajibCfg?.perPertemuan||1000)}).</div>
+          </div>
+          <input id="fKNote" placeholder="Catatan (mis. Iuran, Donasi, Beli ATK)" style="grid-column:1/3">
+        </div>
+        <div class="row" style="justify-content:flex-end;margin-top:12px">
+          <button class="primary" onclick="saveKas()">Simpan</button>
+        </div>
+      `;
+      openModal(id?'Edit Kas':'Input Kas', html);
+      bindNumberSeparator(document.getElementById('fKAmount'));
+      fillAnggotaOptions_('fKAnggota');
+
+      if(id){
+        const row = Array.from(document.querySelectorAll('#kasBody tr'))
+          .find(tr => tr.children[0]?.textContent === id);
+        if(row){
+          document.getElementById('fKTgl').value = row.children[1].textContent;
+          document.getElementById('fKType').value = row.children[2].innerText.trim();
+          const amt = onlyDigits(row.children[3].textContent);
+          document.getElementById('fKAmount').value = amt;
+          bindNumberSeparator(document.getElementById('fKAmount'));
+          document.getElementById('fKNote').value = row.children[4].textContent;
+        }
+      }
+      toggleKasAnggotaField_();
+    }
+
+    function toggleKasAnggotaField_(){
+      const type = document.getElementById('fKType')?.value;
+      const wrap = document.getElementById('fKAnggotaWrap');
+      if(wrap) wrap.style.display = (type === 'IN') ? '' : 'none';
+    }
+
+    async function saveKas(){
+      try{
+        const id = (document.getElementById('fKId').value||'').trim();
+        const tgl = (document.getElementById('fKTgl').value||'').trim();
+        const type = (document.getElementById('fKType').value||'').trim();
+        const amount = getNumberRaw(document.getElementById('fKAmount'));
+        const note = (document.getElementById('fKNote').value||'').trim();
+        const anggotaId = type==='IN' ? (document.getElementById('fKAnggota')?.value||'').trim() : '';
+
+        const res = await call('kas_upsert', { id, tgl, type, amount, note, anggotaId });
+        if(!res.ok) throw new Error(res.message||'Gagal simpan kas');
+
+        toast('Kas tersimpan');
+        closeModal();
+        await loadKas(STATE.kas.page);
+        await loadDashboard();
+      }catch(e){
+        toast(String(e.message||e), false);
+      }
+    }
+
+    async function delKas(id){
+      if(!confirm('Hapus catatan kas ini?')) return;
+      try{
+        const res = await call('kas_delete', { id });
+        if(!res.ok) throw new Error(res.message||'Gagal hapus kas');
+        toast('Kas dihapus');
+        await loadKas(STATE.kas.page);
+        await loadDashboard();
+      }catch(e){
+        toast(String(e.message||e), false);
+      }
+    }
+
+    function renderHutangKasRows_(list){
+      return `
+        <table style="width:100%">
+          <thead><tr><th>NIA</th><th>Nama</th><th>Unit</th><th class="right">Belum Bayar</th><th class="right">Total Hutang</th></tr></thead>
+          <tbody>
+            ${list.map(x=>`
+              <tr>
+                <td>${esc(x.nia||'')}</td>
+                <td>${esc(x.nama||'')}</td>
+                <td>${esc(x.unit||'')}</td>
+                <td class="right">${fmtInt(x.meetingsHutang||0)}x pertemuan</td>
+                <td class="right"><span style="color:var(--danger);font-weight:800">${fmtRp(x.rupiahHutang||0)}</span></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+    }
+
+    async function loadKasWajibStatus(){
+      try{
+        const res = await call('kas_wajib_status', {});
+        if(!res.ok) throw new Error(res.message||'Gagal load status kas wajib');
+
+        STATE.kasWajibCfg = res.cfg;
+
+        const card = document.getElementById('hutangKasCard');
+        const list = document.getElementById('hutangKasList');
+        if(!card || !list) return;
+
+        if(!res.cfg || !res.cfg.startDate){
+          card.style.display = (STATE.me.role==='ADMIN'||STATE.me.role==='PENGURUS') ? '' : 'none';
+          list.innerHTML = `<div class="muted" style="font-size:12px">Kas wajib belum diaktifkan. Klik "⚙️ Atur Kas Wajib" untuk mengatur tanggal mulai & nominal per pertemuan.</div>`;
+          return;
+        }
+
+        if(res.list.length){
+          card.style.display = '';
+          list.innerHTML = renderHutangKasRows_(res.list);
+        }else{
+          card.style.display = '';
+          list.innerHTML = `<div class="muted" style="font-size:12px">🎉 Semua anggota lunas kas wajib sampai pertemuan terakhir.</div>`;
+        }
+      }catch(e){
+        toast(String(e.message||e), false);
+      }
+    }
+
+    async function openKasWajibConfig(){
+      try{
+        const res = await call('kas_wajib_get_config', {});
+        if(!res.ok) throw new Error(res.message||'Gagal load konfigurasi');
+        const cfg = res.cfg || {};
+
+        const html = `
+          <div class="muted" style="font-size:12px;margin-bottom:10px">
+            Tentukan mulai kapan iuran wajib mingguan (malam Senin) dihitung, dan besar iuran per pertemuan.
+            Anggota yang total pembayarannya belum cukup akan otomatis muncul sebagai hutang di Dashboard.
+          </div>
+          <div class="grid cols2">
+            <input id="fKWStart" placeholder="Mulai dihitung dd-mm-yyyy" value="${cfg.startDate?esc(isoToUiDateClient_(cfg.startDate)):''}">
+            <input id="fKWPer" type="text" inputmode="numeric" placeholder="Nominal per pertemuan" value="${cfg.perPertemuan||1000}">
+          </div>
+          <div class="row" style="justify-content:flex-end;margin-top:12px">
+            <button class="primary" onclick="saveKasWajibConfig()">Simpan</button>
+          </div>
+        `;
+        openModal('Atur Kas Wajib Mingguan', html);
+        bindNumberSeparator(document.getElementById('fKWPer'));
+      }catch(e){
+        toast(String(e.message||e), false);
+      }
+    }
+
+    function isoToUiDateClient_(iso){
+      const m = String(iso||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      return m ? `${m[3]}-${m[2]}-${m[1]}` : '';
+    }
+
+    async function saveKasWajibConfig(){
+      try{
+        const startDate = (document.getElementById('fKWStart').value||'').trim();
+        const perPertemuan = getNumberRaw(document.getElementById('fKWPer'));
+
+        const res = await call('kas_wajib_set_config', { startDate, perPertemuan });
+        if(!res.ok) throw new Error(res.message||'Gagal simpan konfigurasi');
+
+        toast('Konfigurasi kas wajib tersimpan');
+        closeModal();
+        await loadKasWajibStatus();
+        await loadDashboard();
+      }catch(e){
+        toast(String(e.message||e), false);
+      }
+    }
+
     /* =========================
        PDF
     ========================= */
@@ -2787,7 +3154,7 @@ body.light select{
 
   function setActiveTopTab_(tab){
     // update state view (reuse logic kamu)
-    const map = ['dash','anggota','trx','pdf','users'];
+    const map = ['dash','anggota','trx','kas','pdf','users'];
     map.forEach(t=>{
       const el = document.getElementById('tab-'+t);
       if(el) el.classList.toggle('hide', t!==tab);
@@ -2802,6 +3169,7 @@ body.light select{
     if(tab==='dash') loadDashboard();
     if(tab==='anggota') loadAnggota(STATE.anggota.page || 1);
     if(tab==='trx') loadTrx(STATE.trx.page || 1);
+    if(tab==='kas'){ loadKas(STATE.kas.page || 1); loadKasWajibStatus(); }
     if(tab==='pdf') initPdfPanel_();
     if(tab==='users') loadUsers(1);
   }
@@ -2824,6 +3192,7 @@ body.light select{
     items.push({ key:'dash', title:'📊 Dashboard', desc:'Ringkasan & angka penting', show:true });
     items.push({ key:'anggota', title:'👨‍🎓 Anggota', desc:'Master anggota & PIN', show: isStaff && !force });
     items.push({ key:'trx', title:'💰 Transaksi', desc:'Riwayat & input', show: !force }); // anggota boleh view
+    items.push({ key:'kas', title:'🏦 Kas', desc:'Kas organisasi (semua anggota boleh lihat)', show: !force });
     items.push({ key:'pdf', title:'📄 PDF', desc:'Export laporan bulanan', show: !force });
     items.push({ key:'users', title:'👤 Users', desc:'Admin: kelola akun', show: isAdmin && !force });
 
@@ -2833,6 +3202,7 @@ body.light select{
 
     // staff-only: input transaksi cepat
     items.push({ key:'action_addtrx', title:'➕ Input Transaksi', desc:'Admin: tambah transaksi', show: isStaff && !force, action: ()=>openTrxForm() });
+    items.push({ key:'action_addkas', title:'➕ Input Kas', desc:'Admin: tambah kas masuk/keluar', show: isStaff && !force, action: ()=>openKasForm() });
     items.push({ key:'action_addanggota', title:'➕ Tambah Anggota', desc:'Admin: tambah anggota', show: isStaff && !force, action: ()=>openAnggotaForm() });
 
     // password
@@ -2867,7 +3237,7 @@ body.light select{
           return;
         }
         // navigate
-        if(key==='dash' || key==='anggota' || key==='trx' || key==='pdf' || key==='users'){
+        if(key==='dash' || key==='anggota' || key==='trx' || key==='kas' || key==='pdf' || key==='users'){
           setActiveTopTab_(key);
         }
       });
